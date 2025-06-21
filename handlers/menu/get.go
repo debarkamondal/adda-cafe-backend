@@ -1,4 +1,4 @@
-package products
+package menu
 
 import (
 	"context"

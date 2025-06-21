@@ -1,8 +1,6 @@
 package types
 
 import (
-	"time"
-
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -17,17 +15,18 @@ type Product struct {
 
 type Item struct {
 	Id    string `json:"id" dynamodbav:"id"`
-	Title string `json:"title" dynamodbav:"title,omitempty"`
+	Title string `json:"title,omitempty" dynamodbav:"title,omitempty"`
 	Price uint16 `json:"price" dynamodbav:"price, omitempty"`
 	Qty   uint8  `json:"qty" dynamodbav:"qty, omitempty"`
 }
 
 type Order struct {
-	Pk        string    `json:"-" dynamodbav:"pk"`
-	Sk        string    `json:"id" dynamodbav:"sk"`
-	Items     []Item    `json:"items" dynamodbav:"items"`
-	Notes     string    `json:"notes,omitempty" dynamodbav:"notes,omitempty"`
-	CreatedAt time.Time `json:"createdAt" dynamodbav:"createdAt"`
+	Pk        string `json:"-" dynamodbav:"pk"`
+	Sk        string `json:"id" dynamodbav:"sk"`
+	Items     []Item `json:"items" dynamodbav:"items"`
+	Notes     string `json:"notes,omitempty" dynamodbav:"notes,omitempty"`
+	SessionId string `json:"sessionId" dynamodbav:"sessionId"`
+	CreatedAt int64  `json:"createdAt" dynamodbav:"createdAt"`
 }
 
 type Table struct {

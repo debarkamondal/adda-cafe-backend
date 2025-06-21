@@ -3,7 +3,6 @@ package reserve
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -85,6 +84,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		TableId:   tableId,
 		CreatedAt: currentTime,
 		UpdatedAt: currentTime,
+		Status:    localTypes.SessionOngoing,
 	}
 
 	marshalledSession, err := attributevalue.MarshalMap(session)
@@ -116,7 +116,6 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		body := map[string]any{"message": "Unable to reserve the table. Please contact us."}
 		json.NewEncoder(w).Encode(body)

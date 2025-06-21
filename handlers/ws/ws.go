@@ -6,11 +6,12 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/debarkamondal/adda-cafe-backend/types"
 	"github.com/gorilla/websocket"
 )
 
 var clients = make(map[*websocket.Conn]bool) // Connected clients
-var Broadcast = make(chan map[string]any)            // Broadcast channel
+var Broadcast = make(chan types.Order)       // Broadcast channel
 var Mutex = &sync.Mutex{}                    // Protect clients map
 
 var upgrader = websocket.Upgrader{
@@ -32,27 +33,19 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 	clients[conn] = true
 	Mutex.Unlock()
 
-	for {
-		// _, message, err := conn.ReadMessage()
-		// if err != nil {
-		// 	Mutex.Lock()
-		// 	delete(clients, conn)
-		// 	Mutex.Unlock()
-		// 	break
-		// }
-		// Broadcast <- message
+	for true {
 	}
 }
 func HandleBroadcast() {
 	for {
-		// Grab the next message from the broadcast channel
-		message := <-Broadcast
+		// Grab the next order from the broadcast channel
+		order := <-Broadcast
 
 		// Send the message to all connected clients
 		Mutex.Lock()
 		for client := range clients {
-			temp, err := json.Marshal(message)
-			if err!= nil{
+			temp, err := json.Marshal(order)
+			if err != nil {
 				fmt.Println("Error bad JSON")
 				return
 			}
