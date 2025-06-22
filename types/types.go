@@ -62,8 +62,9 @@ type Session struct {
 	Sk        string        `json:"id" dynamodbav:"sk"`
 	Status    sessionStatus `json:"status" dynamodbav:"status"`
 	TableId   string        `json:"tableId" dynamodbav:"tableId"`
-	Orders    []Order       `json:"orders" dynamodbav:"orders"`
+	Orders    []string      `json:"orders" dynamodbav:"orders"`
 	Amount    uint16        `json:"amount,omitempty" dynamodbav:"amount,omitempty"`
+	CsrfToken string        `json:"csrfToken" dynamodbav:"csrfToken"`
 	CreatedAt int64         `json:"createdAt" dynamodbav:"createdAt"`
 	UpdatedAt int64         `json:"updatedAt" dynamodbav:"updatedAt"`
 }

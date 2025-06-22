@@ -76,15 +76,17 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	uid, err := uuid.NewV7()
-
+	csrf, err := uuid.NewV7()
 	currentTime := time.Now().UnixMilli()
 	session := localTypes.Session{
 		Pk:        "session",
 		Sk:        uid.String(),
 		TableId:   tableId,
 		CreatedAt: currentTime,
+		Orders:    []string{},
 		UpdatedAt: currentTime,
 		Status:    localTypes.SessionOngoing,
+		CsrfToken: csrf.String(),
 	}
 
 	marshalledSession, err := attributevalue.MarshalMap(session)
@@ -122,10 +124,9 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	csrf, err := uuid.NewV7()
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
-		Value:    csrf.String(),
+		Value:    uid.String(),
 		MaxAge:   10800,
 		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
