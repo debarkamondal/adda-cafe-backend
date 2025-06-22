@@ -3,7 +3,6 @@ package orders
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -81,7 +80,6 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	order.CreatedAt = currentTime
 
 	marshalledOrder, err := attributevalue.MarshalMap(order)
-	marshalledOrderId, err := attributevalue.MarshalList(&awsTypes.AttributeValueMemberS{Value: id.String()})
 	ws.Broadcast <- order
 
 	_, err = dbClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
@@ -116,7 +114,6 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		fmt.Println(marshalledOrderId, err)
 		w.WriteHeader(http.StatusInternalServerError)
 		body := map[string]any{"message": "DB error"}
 		json.NewEncoder(w).Encode(body)
