@@ -23,15 +23,13 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	var dbClient = dynamodb.NewFromConfig(cfg)
 	var order types.Order
 
-	csrfToken := r.Header.Get("X-CSRF-TOKEN")
-
-	sessionToken, sesErr := r.Cookie("session_token")
-	if sesErr != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		body := map[string]any{"message": "Unauthorized"}
-		json.NewEncoder(w).Encode(body)
-		return
-	}
+	sessionToken, _ := r.Cookie("session_token") //This error is already handeled in the UserAuthMiddleware
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusUnauthorized)
+	// 	body := map[string]any{"message": "Unauthorized"}
+	// 	json.NewEncoder(w).Encode(body)
+	// 	return
+	// }
 
 	json.NewDecoder(r.Body).Decode(&order)
 	if len(order.Items) <= 0 {
@@ -41,35 +39,35 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
-		TableName: aws.String("go-test"),
-		Key: map[string]awsTypes.AttributeValue{
-			"pk": &awsTypes.AttributeValueMemberS{Value: "session"},
-			"sk": &awsTypes.AttributeValueMemberS{Value: sessionToken.Value},
-		},
-	})
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		body := map[string]any{"message": "Error fetching session"}
-		json.NewEncoder(w).Encode(body)
-		return
-	}
-	if res.Item == nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		body := map[string]any{"message": "Session not found"}
-		json.NewEncoder(w).Encode(body)
-		return
-	}
-
-	var session types.Session
-	err = attributevalue.UnmarshalMap(res.Item, &session)
-
-	if session.CsrfToken != csrfToken {
-		w.WriteHeader(http.StatusBadRequest)
-		body := map[string]any{"message": "Unauthorized"}
-		json.NewEncoder(w).Encode(body)
-		return
-	}
+	// res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
+	// 	TableName: aws.String("go-test"),
+	// 	Key: map[string]awsTypes.AttributeValue{
+	// 		"pk": &awsTypes.AttributeValueMemberS{Value: "session"},
+	// 		"sk": &awsTypes.AttributeValueMemberS{Value: sessionToken.Value},
+	// 	},
+	// })
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	body := map[string]any{"message": "Error fetching session"}
+	// 	json.NewEncoder(w).Encode(body)
+	// 	return
+	// }
+	// if res.Item == nil {
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	body := map[string]any{"message": "Session not found"}
+	// 	json.NewEncoder(w).Encode(body)
+	// 	return
+	// }
+	//
+	// var session types.Session
+	// err = attributevalue.UnmarshalMap(res.Item, &session)
+	//
+	// if session.CsrfToken != csrfToken {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	body := map[string]any{"message": "Unauthorized"}
+	// 	json.NewEncoder(w).Encode(body)
+	// 	return
+	// }
 
 	id, err := uuid.NewV7()
 	currentTime := time.Now().UnixMilli()

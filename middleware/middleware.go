@@ -1,14 +1,68 @@
 package middleware
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
+
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	awsTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/debarkamondal/adda-cafe-backend/types"
 )
 
 type HandleFunc func(w http.ResponseWriter, r *http.Request)
 type Middleware func(HandleFunc) HandleFunc
 
-func TestMiddleware(next HandleFunc) HandleFunc {
+var cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-south-1"))
+
+func UserAuthorizer(next HandleFunc) HandleFunc {
+	var dbClient = dynamodb.NewFromConfig(cfg)
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		csrfToken := r.Header.Get("X-CSRF-TOKEN")
+
+		sessionToken, sesErr := r.Cookie("session_token")
+		if sesErr != nil || csrfToken == "" {
+			w.WriteHeader(http.StatusUnauthorized)
+			body := map[string]any{"message": "Unauthorized"}
+			json.NewEncoder(w).Encode(body)
+			return
+		}
+
+		res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
+			TableName: aws.String("go-test"),
+			Key: map[string]awsTypes.AttributeValue{
+				"pk": &awsTypes.AttributeValueMemberS{Value: "session"},
+				"sk": &awsTypes.AttributeValueMemberS{Value: sessionToken.Value},
+			},
+		})
+		if err != nil {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			body := map[string]any{"message": "Error fetching session"}
+			json.NewEncoder(w).Encode(body)
+			return
+		}
+		if res.Item == nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			body := map[string]any{"message": "Session not found"}
+			json.NewEncoder(w).Encode(body)
+			return
+		}
+
+		var session types.Session
+		err = attributevalue.UnmarshalMap(res.Item, &session)
+		if session.CsrfToken != csrfToken {
+			w.WriteHeader(http.StatusBadRequest)
+			body := map[string]any{"message": "Unauthorized"}
+			json.NewEncoder(w).Encode(body)
+			return
+		}
+
 		next(w, r)
 	}
 }
