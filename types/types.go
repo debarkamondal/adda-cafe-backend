@@ -4,6 +4,18 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+const (
+	AdminUser   = "admin"
+	KitchenUser = "kitchen"
+)
+
+type userRole string
+type User struct {
+	Pk             string   `json:"-" dynamodbav:"pk"` // user
+	Sk             string   `json:"id" dynamodbav:"sk"`
+	HashedPassword []byte   `json:"hashedPassword" dynamodbav:"hashedPassword"` // <hashedPassword>
+	Role           userRole `json:"role" dynamodbav:"role"`
+}
 type Product struct {
 	Pk          string `json:"-" dynamodbav:"pk"`
 	Sk          string `json:"id" dynamodbav:"sk"`
@@ -38,24 +50,12 @@ type Table struct {
 	UpdatedAt        int64  `json:"updatedAt" dynamodbav:"updatedAt"`
 }
 
-type sessionStatus int
+type sessionStatus string
 
 const (
-	SessionOngoing sessionStatus = iota
-	SessionFinished
+	SessionOngoing  = "ongoing"
+	SessionFinished = "finished"
 )
-
-func (ss sessionStatus) String() string {
-	switch ss {
-	case SessionOngoing:
-		return "ongoing"
-	case SessionFinished:
-		return "finished"
-	default:
-		return "error"
-
-	}
-}
 
 type Session struct {
 	Pk        string        `json:"-" dynamodbav:"pk"`
