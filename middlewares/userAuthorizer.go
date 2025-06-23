@@ -1,4 +1,4 @@
-package middleware
+package middlewares
 
 import (
 	"context"
@@ -13,9 +13,6 @@ import (
 	awsTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/debarkamondal/adda-cafe-backend/types"
 )
-
-type HandleFunc func(w http.ResponseWriter, r *http.Request)
-type Middleware func(HandleFunc) HandleFunc
 
 var cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-south-1"))
 
@@ -65,13 +62,4 @@ func UserAuthorizer(next HandleFunc) HandleFunc {
 
 		next(w, r)
 	}
-}
-func Handle(final HandleFunc, middlewares []Middleware) HandleFunc {
-	if final == nil {
-		panic("no final handler")
-	}
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		final = middlewares[i](final)
-	}
-	return final
 }
