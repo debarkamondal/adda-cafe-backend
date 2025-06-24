@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -16,7 +17,7 @@ import (
 func Get(w http.ResponseWriter, r *http.Request) {
 	dbClient := dynamodb.NewFromConfig(cfg)
 	res, err := dbClient.Query(context.TODO(), &dynamodb.QueryInput{
-		TableName:              aws.String("go-test"),
+		TableName:              aws.String(os.Getenv("DB_TABLE_NAME")),
 		KeyConditionExpression: aws.String("pk = :items"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":items": &types.AttributeValueMemberS{Value: "item"},

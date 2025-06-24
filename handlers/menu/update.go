@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -22,7 +23,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	s3Client := s3.NewFromConfig(cfg)
 	presigner := s3.NewPresignClient(s3Client)
 	res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
-		TableName: aws.String("go-test"),
+		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: "item"}, // Partition Key
 			"sk": &types.AttributeValueMemberS{Value: id},     // Sort Key
@@ -62,7 +63,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		item.Image = updatedProduct.Image
 		imageSlice := strings.Split(updatedProduct.Image, ".")
 		url, err := presigner.PresignPutObject(context.TODO(), &s3.PutObjectInput{
-			Bucket:      aws.String("dezire-golang-bucket"),
+			Bucket:      aws.String(os.Getenv("S3_BUCKET_NAME")),
 			Key:         aws.String("items/" + updatedProduct.Image),
 			ContentType: aws.String("image/" + imageSlice[1]),
 		}, func(opts *s3.PresignOptions) {

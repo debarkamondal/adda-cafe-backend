@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -21,7 +22,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	dbClient := dynamodb.NewFromConfig(cfg)
 	s3Client := s3.NewFromConfig(cfg)
 	res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
-		TableName: aws.String("go-test"),
+		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: "item"}, // Partition Key
 			"sk": &types.AttributeValueMemberS{Value: id},     // Sort Key
@@ -44,7 +45,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	var item localType.Product
 	attributevalue.UnmarshalMap(res.Item, &item)
 	_, deleteErr := dbClient.DeleteItem(context.TODO(), &dynamodb.DeleteItemInput{
-		TableName: aws.String("go-test"),
+		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: "item"}, // Partition Key
 			"sk": &types.AttributeValueMemberS{Value: id},     // Sort Key
@@ -58,7 +59,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, s3Err := s3Client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
-		Bucket: aws.String("dezire-golang-bucket"),
+		Bucket: aws.String(os.Getenv("S3_BUCKET_NAME")),
 		Key:    aws.String("items/" + item.Image),
 	})
 	if s3Err != nil {

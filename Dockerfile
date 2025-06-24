@@ -1,6 +1,6 @@
 FROM golang:1.24.4-alpine AS base
 
-FROM base AS development
+FROM base AS dev
 
 WORKDIR /app
 RUN go install github.com/air-verse/air@latest
@@ -11,13 +11,14 @@ CMD ["air"]
 
 FROM base AS builder
 
+
 WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
 RUN CGO_ENABLED=0 go build -o adda-backend
 
-FROM scratch AS production
+FROM scratch AS prod
 
 WORKDIR /prod
 COPY --from=builder /build/adda-backend ./

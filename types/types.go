@@ -57,6 +57,13 @@ const (
 	SessionFinished = "finished"
 )
 
+type BackendSession struct {
+	Pk        string   `json:"-" dynamodbav:"pk"`
+	Sk        string   `json:"id" dynamodbav:"sk"`
+	CsrfToken string   `json:"csrfToken" dynamodbav:"csrfToken"`
+	Role      userRole `json:"role" dynamodbav:"role"`
+	CreatedAt int64    `json:"createdAt" dynamodbav:"createdAt"`
+}
 type Session struct {
 	Pk        string        `json:"-" dynamodbav:"pk"`
 	Sk        string        `json:"id" dynamodbav:"sk"`

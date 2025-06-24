@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -11,17 +12,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
 	localTypes "github.com/debarkamondal/adda-cafe-backend/types"
 )
 
-type tableToken struct {
-	Id string `json:"id"`
-	jwt.RegisteredClaims
-}
 
 type credentials struct {
 	Id       string `json:"id"`
@@ -41,7 +37,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
-		TableName: aws.String("go-test"),
+		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: "user"},
 			"sk": &types.AttributeValueMemberS{Value: creds.Id},
@@ -63,7 +59,8 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	var user localTypes.User
 	attributevalue.UnmarshalMap(res.Item, &user)
 
-	uid, _ := uuid.NewV7()
+	uid, err := uuid.NewV7()
+	csrf, err := uuid.NewV7()
 	err = bcrypt.CompareHashAndPassword(user.HashedPassword, []byte(creds.Password))
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -71,13 +68,19 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(body)
 		return
 	}
+
 	currentTime := time.Now().UnixMilli()
-	session := localTypes.AdminSession{
+
+	session := localTypes.BackendSession{
 		Pk:        "session",
 		Sk:        uid.String(),
+		Role:      user.Role,
+		CsrfToken: csrf.String(),
 		CreatedAt: currentTime,
 	}
+
 	marshalledSession, err := attributevalue.MarshalMap(session)
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		body := map[string]any{"message": "Internal Server Error"}
@@ -86,9 +89,10 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = dbClient.PutItem(context.TODO(), &dynamodb.PutItemInput{
-		TableName: aws.String("go-test"),
+		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Item:      marshalledSession,
 	})
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		body := map[string]any{"message": "Internal Server Error"}
@@ -96,7 +100,6 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	csrf, _ := uuid.NewV7()
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Value:    uid.String(),

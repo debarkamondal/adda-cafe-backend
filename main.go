@@ -7,29 +7,32 @@ import (
 	"github.com/debarkamondal/adda-cafe-backend/handlers/menu"
 	"github.com/debarkamondal/adda-cafe-backend/handlers/orders"
 	"github.com/debarkamondal/adda-cafe-backend/handlers/reserve"
-	"github.com/debarkamondal/adda-cafe-backend/handlers/session"
+	"github.com/debarkamondal/adda-cafe-backend/handlers/signin"
 	"github.com/debarkamondal/adda-cafe-backend/handlers/ws"
-	"github.com/debarkamondal/adda-cafe-backend/middleware"
+	"github.com/debarkamondal/adda-cafe-backend/middlewares"
 )
 
 func main() {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /session", session.Create)
+	mux.HandleFunc("GET /signin", signin.Create)
 
+	mux.HandleFunc("GET /reserve", reserve.Create)
 	mux.HandleFunc("GET /menu", menu.Get)
-	mux.HandleFunc("POST /menu", menu.Create)
-	mux.HandleFunc("PATCH /menu/{id}", menu.Update)
-	mux.HandleFunc("DELETE /menu", menu.Delete)
 
-	mux.HandleFunc("/ws/admin", ws.WsHandler)
+	// Backend routes
+	mux.HandleFunc("POST /menu", middlewares.Handle(menu.Create, []middlewares.Middleware{middlewares.AdminAuthorizer}))
+	mux.HandleFunc("DELETE /menu", middlewares.Handle(menu.Delete, []middlewares.Middleware{middlewares.AdminAuthorizer}))
+	mux.HandleFunc("PATCH /menu", middlewares.Handle(menu.Update, []middlewares.Middleware{middlewares.AdminAuthorizer}))
+
+	mux.HandleFunc("/ws/admin", middlewares.Handle(ws.WsHandler, []middlewares.Middleware{middlewares.AdminAuthorizer}))
 	go ws.HandleBroadcast()
 
-	mux.HandleFunc("POST /orders", middleware.Handle(orders.Create, []middleware.Middleware{middleware.UserAuthorizer}))
-	mux.HandleFunc("GET /reserve", reserve.Create)
+	mux.HandleFunc("POST /orders", middlewares.Handle(orders.Create, []middlewares.Middleware{middlewares.UserAuthorizer}))
 
 	fmt.Println("Listening on port 8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
+		fmt.Println(err)
 		fmt.Println("Couldn't initiate server on port 8080")
 	}
 }

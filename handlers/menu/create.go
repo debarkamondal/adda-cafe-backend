@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -39,7 +40,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	_, err = dbClient.PutItem(context.TODO(), &dynamodb.PutItemInput{
-		TableName: aws.String("go-test"),
+		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Item:      item,
 	})
 	if err != nil {
@@ -51,7 +52,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 
 	imageSlice := strings.Split(product.Image, ".")
 	url, err := presigner.PresignPutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket:      aws.String("dezire-golang-bucket"),
+		Bucket:      aws.String(os.Getenv("S3_BUCKET_NAME")),
 		Key:         aws.String("items/" + product.Image),
 		ContentType: aws.String("image/" + imageSlice[1]),
 	}, func(opts *s3.PresignOptions) {

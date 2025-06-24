@@ -1,0 +1,25 @@
+services:
+  adda-backend:
+    image: adda-backend
+    build:
+      context: .
+      target : dev
+      platforms:
+        - linux/arm64
+        - linux/amd64
+    container_name: adda-backend
+    environment:
+      DB_TABLE_NAME: ${DB_TABLE_NAME}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
+      BCRYPT_SECRET: ${BCRYPT_SECRET}
+    env_file:
+      - ./.env
+    networks:
+      - adda-backend-network
+    volumes:
+      - .:/app
+    ports:
+      - 8080:8080
+
+networks:
+  adda-backend-network:

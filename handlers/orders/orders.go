@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -48,7 +49,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		TransactItems: []awsTypes.TransactWriteItem{
 			{
 				Update: &awsTypes.Update{
-					TableName: aws.String("go-test"),
+					TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 					Key: map[string]awsTypes.AttributeValue{
 						"pk": &awsTypes.AttributeValueMemberS{Value: "session"},          // Partition Key
 						"sk": &awsTypes.AttributeValueMemberS{Value: sessionToken.Value}, // Sort Key
@@ -69,7 +70,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 			},
 			{
 				Put: &awsTypes.Put{
-					TableName: aws.String("go-test"),
+					TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 					Item:      marshalledOrder,
 				},
 			},

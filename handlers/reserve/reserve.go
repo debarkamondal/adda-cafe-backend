@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -47,7 +48,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
-		TableName: aws.String("go-test"),
+		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: "table"},
 			"sk": &types.AttributeValueMemberS{Value: tableId},
@@ -95,7 +96,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 		TransactItems: []types.TransactWriteItem{
 			{
 				Update: &types.Update{
-					TableName: aws.String("go-test"),
+					TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 					Key: map[string]types.AttributeValue{
 						"pk": &types.AttributeValueMemberS{Value: "table"}, // Partition Key
 						"sk": &types.AttributeValueMemberS{Value: tableId}, // Sort Key
@@ -110,7 +111,7 @@ func Create(w http.ResponseWriter, r *http.Request) {
 			},
 			{
 				Put: &types.Put{
-					TableName: aws.String("go-test"),
+					TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 					Item:      marshalledSession,
 				},
 			},
