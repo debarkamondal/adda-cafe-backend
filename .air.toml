@@ -1,6 +1,6 @@
 [build]
-cmd = "CGO_ENABLED=0 go build -o adda-cafe"
-bin = "adda-cafe"
+cmd = "CGO_ENABLED=0 go build -o bin/adda-cafe"
+bin = "bin/adda-cafe"
 dir = "."
 include_ext = ["go"]
 run_after_build = "chmod +x adda-cafe"
