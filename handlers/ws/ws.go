@@ -1,10 +1,10 @@
 package ws
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/debarkamondal/adda-cafe-backend/types"
 	"github.com/gorilla/websocket"
@@ -28,11 +28,9 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer conn.Close()
-	// Listen for incoming messages
 	Mutex.Lock()
 	clients[conn] = true
 	Mutex.Unlock()
-
 	for true {
 	}
 }
@@ -44,13 +42,10 @@ func HandleBroadcast() {
 		// Send the message to all connected clients
 		Mutex.Lock()
 		for client := range clients {
-			temp, err := json.Marshal(order)
+			client.SetWriteDeadline(time.Now().Add(time.Second * 3))
+			err := client.WriteJSON(order)
 			if err != nil {
-				fmt.Println("Error bad JSON")
-				return
-			}
-			err = client.WriteMessage(websocket.TextMessage, temp)
-			if err != nil {
+				fmt.Println(err)
 				client.Close()
 				delete(clients, client)
 			}
