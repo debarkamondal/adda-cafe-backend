@@ -19,14 +19,24 @@ import (
 )
 
 var cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-south-1"))
-var dbClient = dynamodb.NewFromConfig(cfg)
 
 func Post(w http.ResponseWriter, r *http.Request) {
+	var dbClient = dynamodb.NewFromConfig(cfg)
 
-	token := r.URL.Query().Get("token")
+	var body struct {
+		Name   string `json:"name" dynamodbav:"name"`
+		Token  string `json:"token" dynamodbav:"token"`
+		Phone  int64  `json:"phone" dynamodbav:"phone"`
+		Coords struct {
+			Lat  float64 `json:"lat" dynamodbav:"lat"`
+			Long float64 `json:"long" dynamodbav:"long"`
+		} `json:"coords" dynamodbav:"coords"`
+	}
+	json.NewDecoder(r.Body).Decode(&body)
+
 	var tableId string
 
-	parsedToken, err := jwt.ParseWithClaims(token, &localTypes.TableToken{}, func(t *jwt.Token) (any, error) {
+	parsedToken, err := jwt.ParseWithClaims(body.Token, &localTypes.TableToken{}, func(t *jwt.Token) (any, error) {
 		return []byte("test"), nil
 	})
 
@@ -71,7 +81,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	attributevalue.UnmarshalMap(res.Item, &table)
 	if !table.IsAvailable {
 		w.WriteHeader(http.StatusConflict)
-		body := map[string]any{"message": "Table is already reserved. If free please contact us."}
+		body := map[string]any{"message": "Table is already reserved. Please contact us."}
 		json.NewEncoder(w).Encode(body)
 		return
 	}
@@ -83,6 +93,8 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		Pk:        "session",
 		Sk:        uid.String(),
 		TableId:   tableId,
+		Name:      body.Name,
+		Phone:     body.Phone,
 		CreatedAt: currentTime,
 		Orders:    []string{},
 		UpdatedAt: currentTime,
@@ -101,11 +113,13 @@ func Post(w http.ResponseWriter, r *http.Request) {
 						"pk": &types.AttributeValueMemberS{Value: "table"}, // Partition Key
 						"sk": &types.AttributeValueMemberS{Value: tableId}, // Sort Key
 					},
-					UpdateExpression: aws.String("SET isAvailable = :availability, currentSession=:sessionId, updatedAt=:updatedAt"),
+					UpdateExpression: aws.String("SET isAvailable = :availability, currentSession=:sessionId, updatedAt=:updatedAt, name=:name, phone=:phone"),
 					ExpressionAttributeValues: map[string]types.AttributeValue{
 						":availability": &types.AttributeValueMemberBOOL{Value: false},
 						":sessionId":    &types.AttributeValueMemberS{Value: uid.String()},
+						":name":         &types.AttributeValueMemberS{Value: body.Name},
 						":updatedAt":    &types.AttributeValueMemberN{Value: strconv.FormatInt(currentTime, 10)},
+						":phone":        &types.AttributeValueMemberN{Value: strconv.FormatInt(body.Phone, 10)},
 					},
 				},
 			},
@@ -127,6 +141,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
+		Domain:   "localhost",
 		Value:    uid.String(),
 		MaxAge:   10800,
 		Secure:   true,
@@ -135,6 +150,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:     "csrf_token",
+		Domain:   "localhost",
 		Value:    csrf.String(),
 		MaxAge:   10800,
 		Secure:   true,
@@ -142,6 +158,5 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	})
 
 	w.WriteHeader(http.StatusOK)
-	body := map[string]any{"message": "table reserved"}
-	json.NewEncoder(w).Encode(body)
+	json.NewEncoder(w).Encode(map[string]any{"message": "table reserved"})
 }

@@ -18,7 +18,7 @@ func main() {
 
 	mux.HandleFunc("POST /signin", signin.Post)
 
-	mux.HandleFunc("GET /reserve", reserve.Post)
+	mux.HandleFunc("POST /reserve", middlewares.Handle(reserve.Post, []middlewares.Middleware{middlewares.CORS}))
 	mux.HandleFunc("GET /menu", menu.Get)
 	mux.HandleFunc("POST /user/admin", user.CreateAdmin)
 

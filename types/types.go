@@ -67,6 +67,8 @@ type BackendSession struct {
 type Session struct {
 	Pk        string        `json:"-" dynamodbav:"pk"`
 	Sk        string        `json:"id" dynamodbav:"sk"`
+	Name	  string	`json:"name" dynamodbav:"name"`
+	Phone	  int64		`json:"phone" dynamodbav:"phone"`
 	Status    sessionStatus `json:"status" dynamodbav:"status"`
 	TableId   string        `json:"tableId" dynamodbav:"tableId"`
 	Orders    []string      `json:"orders" dynamodbav:"orders"`

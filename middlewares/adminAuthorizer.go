@@ -19,7 +19,6 @@ func AdminAuthorizer(next HandleFunc) HandleFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		csrfToken := r.Header.Get("X-CSRF-TOKEN")
-
 		sessionToken, sesErr := r.Cookie("session_token")
 		if sesErr != nil || csrfToken == "" {
 			w.WriteHeader(http.StatusUnauthorized)
