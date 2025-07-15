@@ -16,7 +16,6 @@ import (
 
 func AdminAuthorizer(next HandleFunc) HandleFunc {
 	var dbClient = dynamodb.NewFromConfig(cfg)
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		csrfToken := r.Header.Get("X-CSRF-TOKEN")
 		sessionToken, sesErr := r.Cookie("session_token")
