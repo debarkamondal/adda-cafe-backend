@@ -2,3 +2,6 @@
 
 .git/
 bin/
+temp/
+build/
+private

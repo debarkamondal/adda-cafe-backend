@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	adminLogin "github.com/debarkamondal/adda-cafe-backend/handlers/admin/login"
 	"github.com/debarkamondal/adda-cafe-backend/handlers/menu"
 	"github.com/debarkamondal/adda-cafe-backend/handlers/orders"
 	"github.com/debarkamondal/adda-cafe-backend/handlers/reserve"
@@ -15,15 +16,15 @@ import (
 
 func main() {
 	mux := http.NewServeMux()
-
 	mux.HandleFunc("POST /signin", signin.Post)
+	mux.HandleFunc("POST /admin/login", adminLogin.Post)
 
-	mux.HandleFunc("POST /reserve", middlewares.Handle(reserve.Post, []middlewares.Middleware{middlewares.CORS}))
+	mux.HandleFunc("POST /reserve", reserve.Post)
 	mux.HandleFunc("GET /menu", menu.Get)
 	mux.HandleFunc("POST /user/admin", user.CreateAdmin)
 
 	// Backend routes
-	mux.HandleFunc("POST /menu", middlewares.Handle(menu.Post, []middlewares.Middleware{middlewares.AdminAuthorizer}))
+	mux.HandleFunc("POST /menu", menu.Post)
 	mux.HandleFunc("DELETE /menu", middlewares.Handle(menu.Delete, []middlewares.Middleware{middlewares.AdminAuthorizer}))
 	mux.HandleFunc("PATCH /menu", middlewares.Handle(menu.Patch, []middlewares.Middleware{middlewares.AdminAuthorizer}))
 
@@ -32,8 +33,9 @@ func main() {
 
 	mux.HandleFunc("POST /orders", middlewares.Handle(orders.Post, []middlewares.Middleware{middlewares.UserAuthorizer}))
 
+	corsMux:= middlewares.CORS(mux)
 	fmt.Println("Listening on port 8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(":8080", corsMux); err != nil {
 		fmt.Println(err)
 		fmt.Println("Couldn't initiate server on port 8080")
 	}

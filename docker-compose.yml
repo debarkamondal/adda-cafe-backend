@@ -3,7 +3,7 @@ services:
     image: adda-backend
     build:
       context: .
-      target : dev
+      target: dev
       platforms:
         - linux/arm64
         - linux/amd64
@@ -11,7 +11,9 @@ services:
     environment:
       DB_TABLE_NAME: ${DB_TABLE_NAME}
       S3_BUCKET_NAME: ${S3_BUCKET_NAME}
-      BCRYPT_SECRET: ${BCRYPT_SECRET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
     env_file:
       - ./.env
     networks:
