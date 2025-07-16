@@ -15,9 +15,6 @@ import (
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("welcome to prod"))
-	})
 	mux.HandleFunc("POST /signin", signin.Post)
 	mux.HandleFunc("POST /admin/login", adminLogin.Post)
 
@@ -36,7 +33,7 @@ func main() {
 	mux.HandleFunc("POST /orders", middlewares.Handle(orders.Post, []middlewares.Middleware{middlewares.UserAuthorizer}))
 
 	fmt.Println("Listening on port 8080")
-	if err := http.ListenAndServe(":8080", mux); err != nil {
+	if err := http.ListenAndServe(":8080", http.StripPrefix("/adda",mux)); err != nil {
 		fmt.Println(err)
 		fmt.Println("Couldn't initiate server on port 8080")
 	}
