@@ -32,10 +32,7 @@ jobs:
         sudo apt-get install -y podman
 
     - name: Configure Podman for multi-arch
-      run: |
-        
-        # Start podman machine for multi-arch support
-        podman system connection default
+      run:  sudo apt-get install buildah
 
     - name: Log in to Docker Hub
       uses: docker/login-action@v3
