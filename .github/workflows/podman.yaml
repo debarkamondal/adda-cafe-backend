@@ -76,13 +76,13 @@ jobs:
           DOCKER_TAGS: ${{ steps.meta.outputs.tags }}
         run: |
           # Push the manifest (this pushes all architecture images)
-          IFS=',' read -ra ADDR <<< ${{ steps.meta.outputs.tags }}
+          IFS=',' read -ra ADDR <<< "$DOCKER_TAGS"
           for tag in "${ADDR[@]}"; do
           echo "Pushing tag: $tag"
           podman manifest push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:temp \
           docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${tag}
           done
-          podman manifest rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} || true
+          podman manifest rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:temp || true
 
       - name: Clean up local images
         if: always()
