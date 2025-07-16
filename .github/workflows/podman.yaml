@@ -36,8 +36,6 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
@@ -46,13 +44,11 @@ jobs:
         run: |
           # Create a multi-arch manifest
           podman manifest create ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:temp
-          # Build for AMD64
           podman build \
             --platform linux/amd64 \
             --manifest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:temp \
             --file Dockerfile \
             .
-          # Build for ARM64/AArch64
           podman build \
             --platform linux/arm64 \
             --manifest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:temp \
