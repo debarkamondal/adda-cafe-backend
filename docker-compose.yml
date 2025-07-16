@@ -8,17 +8,12 @@ services:
         - linux/arm64
         - linux/amd64
     container_name: adda-backend
-    environment:
-      DB_TABLE_NAME: ${DB_TABLE_NAME}
-      S3_BUCKET_NAME: ${S3_BUCKET_NAME}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
     env_file:
       - ./.env
     networks:
       - adda-backend-network
     volumes:
+      - ./private/:/private
       - .:/app
     ports:
       - 8080:8080

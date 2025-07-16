@@ -9,12 +9,12 @@ import (
 	"encoding/pem"
 	"errors"
 	"os"
-	"path/filepath"
+
 	"reflect"
 )
 
 func AsymSign(hash []byte) (string, error) {
-	path, err := filepath.Abs("./utils/private.pem")
+	path := "/private/private.pem"
 	privateKeyBytes, err := os.ReadFile(path)
 	if err != nil {
 		return "", errors.New("private.pem file not found: " + path)
