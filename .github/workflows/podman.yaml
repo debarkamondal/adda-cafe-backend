@@ -80,7 +80,7 @@ jobs:
         podman manifest push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
           docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
         
-        # Tag and push with extracted metadata tags
+      run: |
         for tag in ${{ steps.meta.outputs.tags }}; do
           podman tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} $tag
           podman push $tag
