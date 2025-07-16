@@ -2,10 +2,10 @@ name: Build and Push Cross-Platform Image
 
 on:
   push:
-    branches: [ main ]
-    tags: [ 'v*' ]
+    branches: [main]
+    tags: ["v*"]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   REGISTRY: docker.io
@@ -15,74 +15,75 @@ jobs:
   build-and-push:
     environment: build
     runs-on: ubuntu-latest
-    
+
     steps:
-    - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "The job was automatically triggered by a ${{ github.event_name }} event."
 
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: linux/amd64,linux/arm64
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
 
-    - name: Install Podman
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y podman
+      - name: Install Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman buildah
 
-    - name: Configure Podman for multi-arch
-      run:  sudo apt-get install buildah
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
 
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=semver,pattern={{major}}
-          type=raw,value=latest,enable={{is_default_branch}}
+      - name: Build multi-platform image
+        run: |
+          # Create a multi-arch manifest
+          podman manifest create ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          podman manifest create ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-    - name: Build multi-platform image
-      run: |
-        # Create a multi-arch manifest
-        podman manifest create ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-        
-        # Build for AMD64
-        podman build \
-          --platform linux/amd64 \
-          --manifest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-          --file Dockerfile \
-          .
-        
-        # Build for ARM64/AArch64
-        podman build \
-          --platform linux/arm64 \
-          --manifest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-          --file Dockerfile \
-          .
+          # Build for AMD64
+          podman build \
+            --platform linux/amd64 \
+            --manifest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --file Dockerfile \
+            .
 
-    - name: Push manifest and images
-      run: |
-        # Push the manifest (this pushes all architecture images)
-        podman manifest push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-          docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-        
+          # Build for ARM64/AArch64
+          podman build \
+            --platform linux/arm64 \
+            --manifest ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --file Dockerfile \
+            .
 
-    - name: Clean up local images
-      if: always()
-      run: |
-        podman system prune -f
-        podman manifest rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} || true
+      - name: Push manifest and images
+        run: |
+          # Push the manifest (this pushes all architecture images)
+              IFS=',' read -ra ADDR <<< ${{ steps.meta.outputs.tags }}
+              for tag in "${ADDR[@]}"; do
+                echo "Pushing tag: $tag"
+                podman manifest push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:build-temp \
+                  docker://${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${tag}
+              done
+
+      - name: Clean up local images
+        if: always()
+        run: |
+          podman system prune -f
+          podman manifest rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} || true
