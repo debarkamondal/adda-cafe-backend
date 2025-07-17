@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -167,6 +168,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	} else {
 		domain = os.Getenv("BACKEND_DOMAIN")
 	}
+	fmt.Println(domain)
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Domain:   os.Getenv("BACKEND_DOMAIN"),
