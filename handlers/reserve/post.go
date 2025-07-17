@@ -188,7 +188,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_info",
-		Domain:   domain,
+		Domain:   "." + domain,
 		Path:     "/",
 		Value:    userCookie,
 		MaxAge:   10800,
