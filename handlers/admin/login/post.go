@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -50,7 +49,6 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		body := map[string]any{"message": "Internal Server error"}
 		json.NewEncoder(w).Encode(body)
@@ -66,7 +64,6 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	var data adminData
 	err = attributevalue.UnmarshalMap(res.Item, &data)
 	if err != nil {
-		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		body := map[string]any{"message": "Internal Server error"}
 		json.NewEncoder(w).Encode(body)
@@ -74,7 +71,6 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(data.HashedPassword), []byte(creds.Password))
 	if err != nil {
-		fmt.Println(err)
 		w.WriteHeader(http.StatusBadRequest)
 		body := map[string]any{"message": "Invalid password"}
 		json.NewEncoder(w).Encode(body)
