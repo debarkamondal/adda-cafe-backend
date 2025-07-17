@@ -168,7 +168,6 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	} else {
 		domain = os.Getenv("BACKEND_DOMAIN")
 	}
-	fmt.Println(domain)
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Domain:   os.Getenv("BACKEND_DOMAIN"),
@@ -190,7 +189,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_info",
-		Domain:   "." + domain,
+		Domain:   domain,
 		Path:     "/",
 		Value:    userCookie,
 		MaxAge:   10800,

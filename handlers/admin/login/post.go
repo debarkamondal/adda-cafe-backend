@@ -92,7 +92,6 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		Status:    localTypes.SessionOngoing,
 		CsrfToken: csrf.String(),
 	}
-	fmt.Println(session)
 
 	marshalledSession, err := attributevalue.MarshalMap(session)
 
@@ -122,6 +121,13 @@ func Post(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	})
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		body := map[string]any{"message": "Internal Server Error"}
+		json.NewEncoder(w).Encode(body)
+		return
+	}
 	fmt.Println(err)
 
 	userToken := &localTypes.UserTokenType{
@@ -146,7 +152,6 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	} else {
 		domain = os.Getenv("BACKEND_DOMAIN")
 	}
-	fmt.Println(domain)
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Domain:   os.Getenv("BACKEND_DOMAIN"),
