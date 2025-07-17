@@ -160,6 +160,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Domain:   os.Getenv("BACKEND_DOMAIN"),
+		Path:     "/",
 		Value:    uid.String(),
 		MaxAge:   10800,
 		Secure:   true,
@@ -169,6 +170,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "csrf_token",
 		Domain:   os.Getenv("BACKEND_DOMAIN"),
+		Path:     "/",
 		Value:    csrf.String(),
 		MaxAge:   10800,
 		Secure:   true,
@@ -177,6 +179,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_info",
 		Domain:   os.Getenv("BACKEND_DOMAIN"),
+		Path:     "/",
 		Value:    userCookie,
 		MaxAge:   10800,
 		Secure:   true,

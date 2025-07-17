@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -40,7 +41,7 @@ func HashPassword(password string) (string, error) {
 func Post(w http.ResponseWriter, r *http.Request) {
 	var dbClient = dynamodb.NewFromConfig(cfg)
 	var creds adminCreds
-	err:= json.NewDecoder(r.Body).Decode(&creds)
+	err := json.NewDecoder(r.Body).Decode(&creds)
 	res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
@@ -90,6 +91,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		Status:    localTypes.SessionOngoing,
 		CsrfToken: csrf.String(),
 	}
+	fmt.Println(session)
 
 	marshalledSession, err := attributevalue.MarshalMap(session)
 
@@ -119,6 +121,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	})
+	fmt.Println(err)
 
 	userToken := &localTypes.UserTokenType{
 		Name: creds.Username,
@@ -137,6 +140,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Domain:   os.Getenv("BACKEND_DOMAIN"),
+		Path: "/",
 		Value:    sessionId.String(),
 		MaxAge:   10800,
 		Secure:   true,
@@ -146,6 +150,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "csrf_token",
 		Domain:   os.Getenv("BACKEND_DOMAIN"),
+		Path: "/",
 		Value:    csrf.String(),
 		MaxAge:   10800,
 		Secure:   true,
@@ -154,6 +159,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_info",
 		Domain:   os.Getenv("BACKEND_DOMAIN"),
+		Path: "/",
 		Value:    userCookie,
 		MaxAge:   10800,
 		Secure:   true,
