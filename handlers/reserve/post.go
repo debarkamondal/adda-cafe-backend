@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strings"
 
 	// "os"
 	// "strconv"
@@ -157,10 +158,19 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userCookie := base64.StdEncoding.EncodeToString(encodedToken) + "," + signature
+
+	// removing subdomain from the url for the frontend cookie
+	domainArr := strings.SplitN(os.Getenv("BACKEND_DOMAIN"), ".", 2)
+	var domain string
+	if len(domainArr) > 1 {
+		domain = "." + domainArr[1]
+	} else {
+		domain = os.Getenv("BACKEND_DOMAIN")
+	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
 		Domain:   os.Getenv("BACKEND_DOMAIN"),
-		Path:     "/",
+		Path:     os.Getenv("URI_PREFIX"),
 		Value:    uid.String(),
 		MaxAge:   10800,
 		Secure:   true,
@@ -170,7 +180,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "csrf_token",
 		Domain:   os.Getenv("BACKEND_DOMAIN"),
-		Path:     "/",
+		Path:     os.Getenv("URI_PREFIX"),
 		Value:    csrf.String(),
 		MaxAge:   10800,
 		Secure:   true,
@@ -178,7 +188,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_info",
-		Domain:   os.Getenv("BACKEND_DOMAIN"),
+		Domain:   domain,
 		Path:     "/",
 		Value:    userCookie,
 		MaxAge:   10800,
