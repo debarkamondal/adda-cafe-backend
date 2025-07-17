@@ -106,9 +106,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 					},
 					UpdateExpression: aws.String("SET currentSession=:sessionId, updatedAt=:updatedAt"),
 					ExpressionAttributeValues: map[string]types.AttributeValue{
-						":availability": &types.AttributeValueMemberBOOL{Value: false},
 						":sessionId":    &types.AttributeValueMemberS{Value: sessionId.String()},
-						":name":         &types.AttributeValueMemberS{Value: creds.Username},
 						":updatedAt":    &types.AttributeValueMemberN{Value: strconv.FormatInt(currentTime, 10)},
 					},
 				},
@@ -145,12 +143,14 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	}
 	userCookie := base64.StdEncoding.EncodeToString(encodedToken) + "," + signature
 
+	// stripping subdomain
 	domainArr := strings.SplitN(os.Getenv("BACKEND_DOMAIN"), ".", 2)
-	var domain string
+	var rootDomain string
+	// setting rootDomain to localhost or baseDomain
 	if len(domainArr) > 1 {
-		domain = "." + domainArr[1]
+		rootDomain = "." + domainArr[1]
 	} else {
-		domain = os.Getenv("BACKEND_DOMAIN")
+		rootDomain = os.Getenv("BACKEND_DOMAIN")
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_token",
@@ -173,7 +173,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session_info",
-		Domain:   domain,
+		Domain:   rootDomain,
 		Path:     "/",
 		Value:    userCookie,
 		MaxAge:   10800,
