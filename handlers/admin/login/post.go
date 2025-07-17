@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -31,7 +30,7 @@ type adminCreds struct {
 type adminData struct {
 	Username       string `json:"username" dynamodbav:"pk"` //admin:<username>
 	Sk             string `json:"sk" dynamodbav:"sk"`       //data
-	HashedPassword []byte `json:"-" dynamodbav:"hashedPassword"`
+	HashedPassword string `json:"-" dynamodbav:"hashedPassword"`
 }
 
 func HashPassword(password string) (string, error) {
@@ -41,7 +40,7 @@ func HashPassword(password string) (string, error) {
 func Post(w http.ResponseWriter, r *http.Request) {
 	var dbClient = dynamodb.NewFromConfig(cfg)
 	var creds adminCreds
-	json.NewDecoder(r.Body).Decode(&creds)
+	err:= json.NewDecoder(r.Body).Decode(&creds)
 	res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
@@ -49,14 +48,13 @@ func Post(w http.ResponseWriter, r *http.Request) {
 			"sk": &types.AttributeValueMemberS{Value: "data"},
 		},
 	})
-	fmt.Println(res.Item)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		body := map[string]any{"message": "Internal Server error"}
 		json.NewEncoder(w).Encode(body)
 		return
 	}
-	if len(res.Item)<1 {
+	if len(res.Item) < 1 {
 		w.WriteHeader(http.StatusBadRequest)
 		body := map[string]any{"message": "Invalid credentials"}
 		json.NewEncoder(w).Encode(body)
@@ -65,10 +63,16 @@ func Post(w http.ResponseWriter, r *http.Request) {
 
 	var data adminData
 	err = attributevalue.UnmarshalMap(res.Item, &data)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		body := map[string]any{"message": "Internal Server error"}
+		json.NewEncoder(w).Encode(body)
+		return
+	}
 	err = bcrypt.CompareHashAndPassword([]byte(data.HashedPassword), []byte(creds.Password))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		body := map[string]any{"message": "Invalid credentials"}
+		body := map[string]any{"message": "Invalid password"}
 		json.NewEncoder(w).Encode(body)
 		return
 	}
