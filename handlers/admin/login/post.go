@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -82,14 +81,12 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	sessionId, err := uuid.NewV7()
 	csrf, err := uuid.NewV7()
 	currentTime := time.Now().UnixMilli()
-	session := localTypes.Session{
-		Pk:        "session",
+	session := localTypes.BackendSession{
+		Pk:        "session:backend",
 		Sk:        sessionId.String(),
 		Role:      "admin",
 		Name:      creds.Username,
 		CreatedAt: currentTime,
-		UpdatedAt: currentTime,
-		Status:    localTypes.SessionOngoing,
 		CsrfToken: csrf.String(),
 	}
 
@@ -126,7 +123,6 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(body)
 		return
 	}
-	fmt.Println(err)
 
 	userToken := &localTypes.UserTokenType{
 		Name: creds.Username,

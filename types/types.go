@@ -66,6 +66,7 @@ type BackendSession struct {
 	Sk        string   `json:"id" dynamodbav:"sk"`
 	CsrfToken string   `json:"csrfToken" dynamodbav:"csrfToken"`
 	Role      userRole `json:"role" dynamodbav:"role"`
+	Name      string        `json:"name" dynamodbav:"name"`
 	CreatedAt int64    `json:"createdAt" dynamodbav:"createdAt"`
 }
 type Session struct {
