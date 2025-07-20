@@ -19,7 +19,7 @@ import (
 )
 
 var clients = make(map[*websocket.Conn]bool) // Connected clients
-var Broadcast = make(chan types.Order)       // Broadcast channel
+var Broadcast = make(chan any)               // Broadcast channel
 var Mutex = &sync.Mutex{}                    // Protect clients map
 
 var upgrader = websocket.Upgrader{
@@ -71,11 +71,38 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(body)
 		return
 	}
+	// paRes, err := dbClient.UpdateItem(context.TODO(), &dynamodb.UpdateItemInput{
+	// 	TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
+	// 	Key: map[string]awsTypes.AttributeValue{
+	// 		"pk": &awsTypes.AttributeValueMemberS{Value: "pending"},
+	// 		"sk": &awsTypes.AttributeValueMemberS{Value: "actions"},
+	// 	},
+	// 	UpdateExpression: aws.String("SET #session_id = :session_info"),
+	// 	ExpressionAttributeValues: map[string]awsTypes.AttributeValue{
+	// 		":session_info": &awsTypes.AttributeValueMemberM{Value: marshalledSession},
+	// 	},
+	// 	ExpressionAttributeNames: map[string]string{
+	// 		"#session_id": "session:" + session.Sk,
+	// 	},
+	// 	ReturnValues: awsTypes.ReturnValueAllOld,
+	// })
+
+	paRes, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
+		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
+		Key: map[string]awsTypes.AttributeValue{
+			"pk": &awsTypes.AttributeValueMemberS{Value: "pending"},
+			"sk": &awsTypes.AttributeValueMemberS{Value: "actions"},
+		},
+	})
+	var pendingActions map[string]any
+	attributevalue.UnmarshalMap(paRes.Item, &pendingActions)
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("Error upgrading:", err)
 		return
 	}
+
+	Broadcast <- pendingActions
 	defer conn.Close()
 	Mutex.Lock()
 	clients[conn] = true
