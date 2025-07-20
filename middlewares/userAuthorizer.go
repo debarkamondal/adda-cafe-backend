@@ -8,14 +8,11 @@ import (
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awsTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/debarkamondal/adda-cafe-backend/types"
 )
-
-var cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-south-1"))
 
 func UserAuthorizer(next HandleFunc) HandleFunc {
 	var dbClient = dynamodb.NewFromConfig(cfg)

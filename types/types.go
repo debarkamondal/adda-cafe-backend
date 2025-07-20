@@ -62,15 +62,15 @@ const (
 )
 
 type BackendSession struct {
-	Pk        string   `json:"-" dynamodbav:"pk"`
+	Pk        string   `json:"-" dynamodbav:"pk"` //session:backend
 	Sk        string   `json:"id" dynamodbav:"sk"`
 	CsrfToken string   `json:"csrfToken" dynamodbav:"csrfToken"`
 	Role      userRole `json:"role" dynamodbav:"role"`
-	Name      string        `json:"name" dynamodbav:"name"`
+	Name      string   `json:"name" dynamodbav:"name"`
 	CreatedAt int64    `json:"createdAt" dynamodbav:"createdAt"`
 }
 type Session struct {
-	Pk        string        `json:"-" dynamodbav:"pk"`
+	Pk        string        `json:"-" dynamodbav:"pk"` //session
 	Sk        string        `json:"id" dynamodbav:"sk"`
 	Name      string        `json:"name" dynamodbav:"name"`
 	Role      userRole      `json:"role" dynamodbav:"role"`

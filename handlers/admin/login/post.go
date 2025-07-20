@@ -160,8 +160,9 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:     "csrf_token",
-		Domain:   os.Getenv("BACKEND_DOMAIN"),
-		Path:     os.Getenv("URI_PREFIX"),
+		Domain:   rootDomain,
+		Path:     "/",
+		// Path:     os.Getenv("URI_PREFIX"),
 		Value:    csrf.String(),
 		MaxAge:   10800,
 		Secure:   true,
