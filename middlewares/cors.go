@@ -13,11 +13,14 @@ var allowedOrigins = []string{
 
 func CORS(mux http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "OPTIONS" {
+		origin := r.Header.Get("Origin")
+		if r.Method == "OPTIONS" && slices.Contains(allowedOrigins, origin) {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Headers", "X-CSRF-TOKEN")
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-		origin := r.Header.Get("Origin")
 		if slices.Contains(allowedOrigins, origin) {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
