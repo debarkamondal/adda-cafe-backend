@@ -26,7 +26,7 @@ type Product struct {
 	Title       string `json:"title" dynamodbav:"title,omitempty"`
 	Price       uint16 `json:"price" dynamodbav:"price, omitempty"`
 	Description string `json:"description,omitempty" dynamodbav:"description, omitempty"`
-	Image       string `json:"image" dynamodbav:"image, omitempty"`
+	Image       string `json:"image,omitempty" dynamodbav:"image, omitempty"`
 }
 
 type Item struct {

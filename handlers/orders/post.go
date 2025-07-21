@@ -13,7 +13,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awsTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+
 	// "github.com/debarkamondal/adda-cafe-backend/handlers/admin/ws"
+	"github.com/debarkamondal/adda-cafe-backend/handlers/admin/ws"
 	"github.com/debarkamondal/adda-cafe-backend/types"
 	"github.com/google/uuid"
 )
@@ -43,7 +45,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	order.CreatedAt = currentTime
 
 	marshalledOrder, err := attributevalue.MarshalMap(order)
-	// ws.Broadcast <- order
+	ws.Broadcast <- order
 
 	_, err = dbClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
 		TransactItems: []awsTypes.TransactWriteItem{

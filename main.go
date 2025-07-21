@@ -17,21 +17,26 @@ import (
 
 func main() {
 	mux := http.NewServeMux()
+
+	// Public routes (Unauthenticated)
 	mux.HandleFunc("POST /signin", signin.Post)
 	mux.HandleFunc("POST /admin/login", adminLogin.Post)
 
 	mux.HandleFunc("POST /reserve", reserve.Post)
 	mux.HandleFunc("GET /menu", menu.Get)
+
+	// Backend routes (Authenticated)
 	mux.HandleFunc("POST /user/admin", user.CreateAdmin)
 
-	// Backend routes
-	mux.HandleFunc("POST /menu", menu.Post)
-	mux.HandleFunc("DELETE /menu", middlewares.Handle(menu.Delete, []middlewares.Middleware{middlewares.AdminAuthorizer}))
-	mux.HandleFunc("PATCH /menu", middlewares.Handle(menu.Patch, []middlewares.Middleware{middlewares.AdminAuthorizer}))
+	mux.HandleFunc("POST /admin/menu", middlewares.Handle(menu.Post, []middlewares.Middleware{middlewares.AdminAuthorizer}))
+	mux.HandleFunc("DELETE /admin/menu", middlewares.Handle(menu.Delete, []middlewares.Middleware{middlewares.AdminAuthorizer}))
+	mux.HandleFunc("PATCH /admin/menu", middlewares.Handle(menu.Patch, []middlewares.Middleware{middlewares.AdminAuthorizer}))
 
+	// Authentication and authorization for the websocket is being done by the handler itself
 	mux.HandleFunc("/admin/ws", ws.WsHandler)
 	go ws.HandleBroadcast()
 
+	// User routes (Authenticated)
 	mux.HandleFunc("POST /orders", middlewares.Handle(orders.Post, []middlewares.Middleware{middlewares.UserAuthorizer}))
 
 	if os.Getenv("PROXY") == "true" {

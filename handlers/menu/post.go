@@ -3,6 +3,7 @@ package menu
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -20,16 +21,18 @@ import (
 
 var dbClient = dynamodb.NewFromConfig(cfg)
 var s3Client = s3.NewFromConfig(cfg)
+
 func Post(w http.ResponseWriter, r *http.Request) {
 	var product types.Product
 	presigner := s3.NewPresignClient(s3Client)
 	id, err := uuid.NewV7()
 	json.NewDecoder(r.Body).Decode(&product)
+	product.Image = id.String() + "." + strings.Split(product.Image, ".")[1]
 
 	if err != nil {
 		log.Fatalf("failed to load configuration, %v", err)
 	}
-	product.Pk = "item"
+	product.Pk = "menu"
 	product.Sk = id.String()
 
 	item, err := attributevalue.MarshalMap(product)
@@ -49,14 +52,13 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(body)
 		return
 	}
-
-	imageSlice := strings.Split(product.Image, ".")
+fmt.Println("image/" + strings.Split(product.Image, ".")[1])
 	url, err := presigner.PresignPutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket:      aws.String(os.Getenv("S3_BUCKET_NAME")),
-		Key:         aws.String("items/" + product.Image),
-		ContentType: aws.String("image/" + imageSlice[1]),
+		Key:         aws.String("menu/" + product.Image),
+		ContentType: aws.String("image/" + strings.Split(product.Image, ".")[1]),
 	}, func(opts *s3.PresignOptions) {
-		opts.Expires = time.Duration(60 * int64(time.Second))
+		opts.Expires = time.Duration(120 * int64(time.Second))
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

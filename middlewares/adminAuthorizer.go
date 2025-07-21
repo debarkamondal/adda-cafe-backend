@@ -32,7 +32,7 @@ func AdminAuthorizer(next HandleFunc) HandleFunc {
 		res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 			TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 			Key: map[string]awsTypes.AttributeValue{
-				"pk": &awsTypes.AttributeValueMemberS{Value: "session"},
+				"pk": &awsTypes.AttributeValueMemberS{Value: "session:backend"},
 				"sk": &awsTypes.AttributeValueMemberS{Value: sessionToken.Value},
 			},
 		})
