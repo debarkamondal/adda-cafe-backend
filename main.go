@@ -6,6 +6,7 @@ import (
 	"os"
 
 	adminLogin "github.com/debarkamondal/adda-cafe-backend/handlers/admin/login"
+	"github.com/debarkamondal/adda-cafe-backend/handlers/admin/pending"
 	"github.com/debarkamondal/adda-cafe-backend/handlers/admin/ws"
 	"github.com/debarkamondal/adda-cafe-backend/handlers/menu"
 	"github.com/debarkamondal/adda-cafe-backend/handlers/orders"
@@ -23,6 +24,7 @@ func main() {
 	mux.HandleFunc("POST /admin/login", adminLogin.Post)
 
 	mux.HandleFunc("POST /reserve", reserve.Post)
+
 	mux.HandleFunc("GET /menu", menu.Get)
 
 	// Backend routes (Authenticated)
@@ -32,8 +34,10 @@ func main() {
 	mux.HandleFunc("DELETE /admin/menu", middlewares.Handle(menu.Delete, []middlewares.Middleware{middlewares.AdminAuthorizer}))
 	mux.HandleFunc("PATCH /admin/menu", middlewares.Handle(menu.Patch, []middlewares.Middleware{middlewares.AdminAuthorizer}))
 
-	// Authentication and authorization for the websocket is being done by the handler itself
-	mux.HandleFunc("/admin/ws", ws.WsHandler)
+	mux.HandleFunc("DELETE /admin/pending", middlewares.Handle(pending.Delete, []middlewares.Middleware{middlewares.AdminAuthorizer}))
+
+	mux.HandleFunc("/admin/ws", ws.WsHandler) // Authentication and authorization for the websocket is being done by the handler itself
+
 	go ws.HandleBroadcast()
 
 	// User routes (Authenticated)
