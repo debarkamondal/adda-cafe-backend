@@ -9,29 +9,26 @@ import (
 	"os"
 	"strings"
 
-	// "os"
-	// "strconv"
-	// "time"
+	"time"
 
 	// "github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/debarkamondal/adda-cafe-backend/handlers/admin/ws"
 	"github.com/debarkamondal/adda-cafe-backend/types"
 	"github.com/debarkamondal/adda-cafe-backend/utils"
 
-	// "github.com/golang-jwt/jwt/v5"
-
-	// "github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
-	// "github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	// "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	// localTypes "github.com/debarkamondal/adda-cafe-backend/types"
-	// "github.com/golang-jwt/jwt/v5"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	awsTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	localTypes "github.com/debarkamondal/adda-cafe-backend/types"
 	"github.com/google/uuid"
 )
 
 var cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-south-1"))
 
 func Post(w http.ResponseWriter, r *http.Request) {
-	// var dbClient = dynamodb.NewFromConfig(cfg)
+	var dbClient = dynamodb.NewFromConfig(cfg)
 
 	var body struct {
 		Name   string `json:"name" dynamodbav:"name"`
@@ -98,52 +95,89 @@ func Post(w http.ResponseWriter, r *http.Request) {
 
 	uid, err := uuid.NewV7()
 	csrf, err := uuid.NewV7()
-	// currentTime := time.Now().UnixMilli()
-	// session := localTypes.Session{
-	// 	Pk:        "session",
-	// 	Sk:        uid.String(),
-	// Role:	"user",
-	// 	TableId:   tableId,
-	// 	Name:      body.Name,
-	// 	Phone:     body.Phone,
-	// 	CreatedAt: currentTime,
-	// 	Orders:    []string{},
-	// 	UpdatedAt: currentTime,
-	// 	Status:    localTypes.SessionOngoing,
-	// 	CsrfToken: csrf.String(),
-	// }
-	//
-	// marshalledSession, err := attributevalue.MarshalMap(session)
-	//
-	// _, err = dbClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
-	// 	TransactItems: []types.TransactWriteItem{
-	// 		{
-	// 			Update: &types.Update{
-	// 				TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
-	// 				Key: map[string]types.AttributeValue{
-	// 					"pk": &types.AttributeValueMemberS{Value: "table"}, // Partition Key
-	// 					"sk": &types.AttributeValueMemberS{Value: tableId}, // Sort Key
-	// 				},
-	// 				UpdateExpression: aws.String("SET isAvailable = :availability, currentSession=:sessionId, updatedAt=:updatedAt, name=:name, phone=:phone"),
-	// 				ExpressionAttributeValues: map[string]types.AttributeValue{
-	// 					":availability": &types.AttributeValueMemberBOOL{Value: false},
-	// 					":sessionId":    &types.AttributeValueMemberS{Value: uid.String()},
-	// 					":name":         &types.AttributeValueMemberS{Value: body.Name},
-	// 					":updatedAt":    &types.AttributeValueMemberN{Value: strconv.FormatInt(currentTime, 10)},
-	// 					":phone":        &types.AttributeValueMemberN{Value: strconv.FormatInt(body.Phone, 10)},
-	// 				},
-	// 			},
-	// 		},
-	// 		{
-	// 			Put: &types.Put{
-	// 				TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
-	// 				Item:      marshalledSession,
-	// 			},
-	// 		},
-	// 	},
-	// })
-	//
+	currentTime := time.Now().UnixMilli()
+	session := localTypes.Session{
+		Pk:   "session",
+		Sk:   uid.String(),
+		Role: "user",
+		// TableId:   tableId,
+		Name:      body.Name,
+		Phone:     body.Phone,
+		CreatedAt: currentTime,
+		Orders:    []string{},
+		UpdatedAt: currentTime,
+		Status:    localTypes.SessionOngoing,
+		CsrfToken: csrf.String(),
+	}
 
+	pendingSession := []localTypes.PendingSessionAction{
+		{
+			Pk:   "pending",
+			Sk:   "session:" + uid.String(),
+			Type: "session",
+			// TableId:   tableId,
+			Name:      body.Name,
+			Phone:     int64(body.Phone),
+			CreatedAt: currentTime,
+			Status:    localTypes.SessionOngoing,
+		},
+	}
+
+	marshalledSession, err := attributevalue.MarshalMap(session)
+	marshalledPendingSession, err := attributevalue.MarshalMap(pendingSession[0])
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		body := map[string]any{"message": "Marshaling error"}
+		json.NewEncoder(w).Encode(body)
+		return
+
+	}
+	_, err = dbClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
+		TransactItems: []awsTypes.TransactWriteItem{
+			{
+				// 			Update: &types.Update{
+				// 				TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
+				// 				Key: map[string]types.AttributeValue{
+				// 					"pk": &types.AttributeValueMemberS{Value: "table"}, // Partition Key
+				// 					"sk": &types.AttributeValueMemberS{Value: tableId}, // Sort Key
+				// 				},
+				// 				UpdateExpression: aws.String("SET isAvailable = :availability, currentSession=:sessionId, updatedAt=:updatedAt, name=:name, phone=:phone"),
+				// 				ExpressionAttributeValues: map[string]types.AttributeValue{
+				// 					":availability": &types.AttributeValueMemberBOOL{Value: false},
+				// 					":sessionId":    &types.AttributeValueMemberS{Value: uid.String()},
+				// 					":name":         &types.AttributeValueMemberS{Value: body.Name},
+				// 					":updatedAt":    &types.AttributeValueMemberN{Value: strconv.FormatInt(currentTime, 10)},
+				// 					":phone":        &types.AttributeValueMemberN{Value: strconv.FormatInt(body.Phone, 10)},
+				// 				},
+				// 			},
+				// 		},
+				// 		{
+
+				//Creating Session
+				Put: &awsTypes.Put{
+					TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
+					Item:      marshalledSession,
+				},
+			},
+			{
+				//Creating pending actions
+				Put: &awsTypes.Put{
+					TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
+					Item:      marshalledPendingSession,
+				},
+			},
+		},
+	})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		body := map[string]any{"message": "Transaction error"}
+		json.NewEncoder(w).Encode(body)
+		return
+
+	}
+
+	ws.Broadcast <- pendingSession
 	userToken := &types.UserTokenType{
 		Name: body.Name,
 		Role: "user",

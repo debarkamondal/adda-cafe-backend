@@ -84,6 +84,17 @@ type Session struct {
 	UpdatedAt int64         `json:"updatedAt" dynamodbav:"updatedAt"`
 }
 
+type PendingSessionAction struct {
+	Pk        string        `json:"-" dynamodbav:"pk"`  //pending
+	Sk        string        `json:"id" dynamodbav:"sk"` //order:<id>
+	Type      string        `json:"type" dynamodbav:"type"`
+	Name      string        `json:"name" dynamodbav:"name"`
+	Phone     int64         `json:"phone" dynamodbav:"phone"`
+	Status    sessionStatus `json:"status" dynamodbav:"status"`
+	TableId   string        `json:"tableId" dynamodbav:"tableId"`
+	CreatedAt int64         `json:"createdAt" dynamodbav:"createdAt"`
+}
+
 type TableToken struct {
 	Id string `json:"id"`
 	jwt.RegisteredClaims

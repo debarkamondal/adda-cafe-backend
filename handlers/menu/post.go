@@ -3,7 +3,6 @@ package menu
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -52,7 +51,6 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(body)
 		return
 	}
-fmt.Println("image/" + strings.Split(product.Image, ".")[1])
 	url, err := presigner.PresignPutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket:      aws.String(os.Getenv("S3_BUCKET_NAME")),
 		Key:         aws.String("menu/" + product.Image),

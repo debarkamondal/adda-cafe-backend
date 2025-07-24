@@ -3,7 +3,6 @@ package menu
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 
@@ -24,7 +23,6 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		},
 	})
 	if err != nil {
-		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		body := map[string]any{"message": "DB error"}
 		json.NewEncoder(w).Encode(body)
