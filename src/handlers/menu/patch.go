@@ -14,15 +14,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
+	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	localType "github.com/debarkamondal/adda-cafe-backend/src/types"
 )
 
 func Patch(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	dbClient := dynamodb.NewFromConfig(cfg)
-	s3Client := s3.NewFromConfig(cfg)
-	presigner := s3.NewPresignClient(s3Client)
-	res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
+	presigner := s3.NewPresignClient(clients.S3Client)
+	res, err := clients.DBClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: "item"}, // Partition Key

@@ -14,13 +14,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awsTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	"github.com/debarkamondal/adda-cafe-backend/src/types"
 	"github.com/gorilla/websocket"
 )
 
-var clients = make(map[*websocket.Conn]bool) // Connected clients
-var Broadcast = make(chan any)               // Broadcast channel
-var Mutex = &sync.Mutex{}                    // Protect clients map
+var wsClients = make(map[*websocket.Conn]bool) // Connected clients
+var Broadcast = make(chan any)                 // Broadcast channel
+var Mutex = &sync.Mutex{}                      // Protect clients map
 
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
@@ -32,7 +33,6 @@ var cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-so
 
 func WsHandler(w http.ResponseWriter, r *http.Request) {
 	// Upgrade the HTTP connection to a WebSocket connection
-	var dbClient = dynamodb.NewFromConfig(cfg)
 	sessionToken, err := r.Cookie("session_token")
 	csrfToken := r.URL.Query().Get("X-CSRF-TOKEN")
 	if err != nil || csrfToken == "" {
@@ -42,7 +42,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
+	res, err := clients.DBClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]awsTypes.AttributeValue{
 			"pk": &awsTypes.AttributeValueMemberS{Value: "session:backend"},
@@ -70,7 +70,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(body)
 		return
 	}
-	paRes, err := dbClient.Query(context.TODO(), &dynamodb.QueryInput{
+	paRes, err := clients.DBClient.Query(context.TODO(), &dynamodb.QueryInput{
 		TableName:              aws.String(os.Getenv("DB_TABLE_NAME")),
 		KeyConditionExpression: aws.String("pk = :pk"),
 		ExpressionAttributeValues: map[string]awsTypes.AttributeValue{
@@ -96,7 +96,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer conn.Close()
 	Mutex.Lock()
-	clients[conn] = true
+	wsClients[conn] = true
 	Mutex.Unlock()
 	for true {
 	}
@@ -108,12 +108,12 @@ func HandleBroadcast() {
 
 		// Send the message to all connected clients
 		Mutex.Lock()
-		for client := range clients {
+		for client := range wsClients {
 			client.SetWriteDeadline(time.Now().Add(time.Second * 3))
 			err := client.WriteJSON(order)
 			if err != nil {
 				client.Close()
-				delete(clients, client)
+				delete(wsClients, client)
 			}
 		}
 		Mutex.Unlock()

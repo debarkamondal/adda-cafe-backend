@@ -15,15 +15,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 
+	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	"github.com/debarkamondal/adda-cafe-backend/src/types"
 )
 
-var dbClient = dynamodb.NewFromConfig(cfg)
-var s3Client = s3.NewFromConfig(cfg)
 
 func Post(w http.ResponseWriter, r *http.Request) {
 	var product types.Product
-	presigner := s3.NewPresignClient(s3Client)
+	presigner := s3.NewPresignClient(clients.S3Client)
 	id, err := uuid.NewV7()
 	json.NewDecoder(r.Body).Decode(&product)
 	product.Image = id.String() + "." + strings.Split(product.Image, ".")[1]
@@ -41,7 +40,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(body)
 		return
 	}
-	_, err = dbClient.PutItem(context.TODO(), &dynamodb.PutItemInput{
+	_, err = clients.DBClient.PutItem(context.TODO(), &dynamodb.PutItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Item:      item,
 	})

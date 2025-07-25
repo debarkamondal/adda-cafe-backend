@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	localTypes "github.com/debarkamondal/adda-cafe-backend/src/types"
 )
 
@@ -22,9 +22,6 @@ type credentials struct {
 	Id       string `json:"id"`
 	Password string `json:"password"`
 }
-
-var cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-south-1"))
-var dbClient = dynamodb.NewFromConfig(cfg)
 
 func Post(w http.ResponseWriter, r *http.Request) {
 	var creds credentials
@@ -35,7 +32,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(body)
 		return
 	}
-	res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
+	res, err := clients.DBClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: "user"},
@@ -87,7 +84,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = dbClient.PutItem(context.TODO(), &dynamodb.PutItemInput{
+	_, err = clients.DBClient.PutItem(context.TODO(), &dynamodb.PutItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Item:      marshalledSession,
 	})

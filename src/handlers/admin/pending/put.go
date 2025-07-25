@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	localTypes "github.com/debarkamondal/adda-cafe-backend/src/types"
 )
 
@@ -59,7 +60,7 @@ func Put(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(body)
 		return
 	}
-	_, err = dbClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
+	_, err = clients.DBClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
 		TransactItems: []types.TransactWriteItem{
 			{
 				Delete: &types.Delete{

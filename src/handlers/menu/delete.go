@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
+	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	localType "github.com/debarkamondal/adda-cafe-backend/src/types"
 )
 
@@ -19,9 +20,7 @@ var test localType.Product
 
 func Delete(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	dbClient := dynamodb.NewFromConfig(cfg)
-	s3Client := s3.NewFromConfig(cfg)
-	res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
+	res, err := clients.DBClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: "item"}, // Partition Key
@@ -44,7 +43,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	var item localType.Product
 	attributevalue.UnmarshalMap(res.Item, &item)
-	_, deleteErr := dbClient.DeleteItem(context.TODO(), &dynamodb.DeleteItemInput{
+	_, deleteErr := clients.DBClient.DeleteItem(context.TODO(), &dynamodb.DeleteItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: "item"}, // Partition Key
@@ -58,7 +57,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(body)
 		return
 	}
-	_, s3Err := s3Client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+	_, s3Err := clients.S3Client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
 		Bucket: aws.String(os.Getenv("S3_BUCKET_NAME")),
 		Key:    aws.String("items/" + item.Image),
 	})

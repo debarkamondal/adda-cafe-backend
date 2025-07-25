@@ -11,11 +11,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awsTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	"github.com/debarkamondal/adda-cafe-backend/src/types"
 )
 
 func UserAuthorizer(next HandleFunc) HandleFunc {
-	var dbClient = dynamodb.NewFromConfig(cfg)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		csrfToken := r.Header.Get("X-CSRF-TOKEN")
@@ -28,7 +28,7 @@ func UserAuthorizer(next HandleFunc) HandleFunc {
 			return
 		}
 
-		res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
+		res, err := clients.DBClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 			TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 			Key: map[string]awsTypes.AttributeValue{
 				"pk": &awsTypes.AttributeValueMemberS{Value: "session"},

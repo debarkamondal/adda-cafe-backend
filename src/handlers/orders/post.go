@@ -15,6 +15,7 @@ import (
 	awsTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 
 	// "github.com/debarkamondal/adda-cafe-backend/src/handlers/admin/ws"
+	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	"github.com/debarkamondal/adda-cafe-backend/src/handlers/admin/ws"
 	"github.com/debarkamondal/adda-cafe-backend/src/types"
 	"github.com/google/uuid"
@@ -23,7 +24,6 @@ import (
 var cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-south-1"))
 
 func Post(w http.ResponseWriter, r *http.Request) {
-	var dbClient = dynamodb.NewFromConfig(cfg)
 	var order types.Order
 
 	sessionToken, _ := r.Cookie("session_token") //This error is already handeled in the UserAuthMiddleware
@@ -47,7 +47,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	marshalledOrder, err := attributevalue.MarshalMap(order)
 	ws.Broadcast <- order
 
-	_, err = dbClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
+	_, err = clients.DBClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
 		TransactItems: []awsTypes.TransactWriteItem{
 			{
 				Update: &awsTypes.Update{

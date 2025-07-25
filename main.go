@@ -1,23 +1,21 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"os"
 
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	"github.com/debarkamondal/adda-cafe-backend/src/handlers/admin/ws"
 	"github.com/debarkamondal/adda-cafe-backend/src/middlewares"
 )
 
-var cfg, err = config.LoadDefaultConfig(context.Background(), config.WithRegion("ap-south-1"))
-var DBClient = dynamodb.NewFromConfig(cfg)
-
 func main() {
+	clients.Init()
+
 	mux := InitRoutes(http.NewServeMux())
 
+	// Handels websocket broadcast
 	go ws.HandleBroadcast()
 
 	if os.Getenv("PROXY") == "true" {

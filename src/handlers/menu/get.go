@@ -10,12 +10,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	localType "github.com/debarkamondal/adda-cafe-backend/src/types"
 )
 
 func Get(w http.ResponseWriter, r *http.Request) {
-	dbClient := dynamodb.NewFromConfig(cfg)
-	res, err := dbClient.Query(context.TODO(), &dynamodb.QueryInput{
+	res, err := clients.DBClient.Query(context.TODO(), &dynamodb.QueryInput{
 		TableName:              aws.String(os.Getenv("DB_TABLE_NAME")),
 		KeyConditionExpression: aws.String("pk = :items"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{

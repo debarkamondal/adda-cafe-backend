@@ -16,6 +16,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	localTypes "github.com/debarkamondal/adda-cafe-backend/src/types"
 
 	"github.com/debarkamondal/adda-cafe-backend/src/utils"
@@ -40,10 +41,9 @@ func HashPassword(password string) (string, error) {
 	return string(bytes), err
 }
 func Post(w http.ResponseWriter, r *http.Request) {
-	var dbClient = dynamodb.NewFromConfig(cfg)
 	var creds adminCreds
 	err := json.NewDecoder(r.Body).Decode(&creds)
-	res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
+	res, err := clients.DBClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: "admin:" + creds.Username},
@@ -93,7 +93,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 
 	marshalledSession, err := attributevalue.MarshalMap(session)
 
-	_, err = dbClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
+	_, err = clients.DBClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
 		TransactItems: []types.TransactWriteItem{
 			{
 				Update: &types.Update{

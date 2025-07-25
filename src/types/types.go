@@ -1,7 +1,6 @@
 package types
 
 import (
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -10,9 +9,6 @@ const (
 	KitchenUser = "kitchen"
 )
 
-type Clients struct {
-	dbClient *dynamodb.Client
-}
 
 type userRole string
 type User struct {

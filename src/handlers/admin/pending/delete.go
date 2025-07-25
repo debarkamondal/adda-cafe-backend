@@ -7,9 +7,9 @@ import (
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	localType "github.com/debarkamondal/adda-cafe-backend/src/types"
 )
 
@@ -18,9 +18,6 @@ type Body struct {
 	Type   string `json:"type"`
 	Reason string `json:"reason"`
 }
-
-var cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-south-1"))
-var dbClient = dynamodb.NewFromConfig(cfg)
 
 func Delete(w http.ResponseWriter, r *http.Request) {
 	var req Body
@@ -47,7 +44,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	_, err = dbClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
+	_, err = clients.DBClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
 		TransactItems: []types.TransactWriteItem{
 			{
 				Delete: &types.Delete{
@@ -73,7 +70,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 	})
-	_, err = dbClient.DeleteItem(context.TODO(), &dynamodb.DeleteItemInput{
+	_, err = clients.DBClient.DeleteItem(context.TODO(), &dynamodb.DeleteItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: "pending"},

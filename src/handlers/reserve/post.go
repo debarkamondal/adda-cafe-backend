@@ -14,6 +14,7 @@ import (
 	// "github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	"github.com/debarkamondal/adda-cafe-backend/src/handlers/admin/ws"
 	"github.com/debarkamondal/adda-cafe-backend/src/types"
 	"github.com/debarkamondal/adda-cafe-backend/src/utils"
@@ -29,7 +30,6 @@ import (
 var cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-south-1"))
 
 func Post(w http.ResponseWriter, r *http.Request) {
-	var dbClient = dynamodb.NewFromConfig(cfg)
 
 	var body struct {
 		Name   string `json:"name" dynamodbav:"name"`
@@ -65,7 +65,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 	//
-	// res, err := dbClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
+	// res, err := clients.DBClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 	// 	TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 	// 	Key: map[string]types.AttributeValue{
 	// 		"pk": &types.AttributeValueMemberS{Value: "table"},
@@ -134,7 +134,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	_, err = dbClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
+	_, err = clients.DBClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
 		TransactItems: []awsTypes.TransactWriteItem{
 			{
 				// 			Update: &types.Update{

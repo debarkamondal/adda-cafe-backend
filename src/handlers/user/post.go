@@ -7,15 +7,12 @@ import (
 	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	"github.com/debarkamondal/adda-cafe-backend/src/types"
 	"golang.org/x/crypto/bcrypt"
 )
-
-var cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-south-1"))
-var dbClient = dynamodb.NewFromConfig(cfg)
 
 func CreateAdmin(w http.ResponseWriter, r *http.Request) {
 	var creds struct {
@@ -44,7 +41,7 @@ func CreateAdmin(w http.ResponseWriter, r *http.Request) {
 		Role:           types.AdminUser,
 	}
 	marshalledUser, err := attributevalue.MarshalMap(user)
-	_, err = dbClient.PutItem(context.TODO(), &dynamodb.PutItemInput{
+	_, err = clients.DBClient.PutItem(context.TODO(), &dynamodb.PutItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Item:      marshalledUser,
 	})
