@@ -84,7 +84,15 @@ type Session struct {
 	UpdatedAt int64         `json:"updatedAt" dynamodbav:"updatedAt"`
 }
 
-type PendingSessionAction struct {
+type FlagAction struct {
+	Pk        string `json:"-" dynamodbav:"pk"`  //pending
+	Sk        string `json:"id" dynamodbav:"sk"` //order:<id>
+	Type      string `json:"type" dynamodbav:"type"`
+	Reason    string `json:"reason" dynamodbav:"reason"`
+	Blame     string `json:"blame" dynamodbav:"blame"`
+	CreatedAt int64  `json:"createdAt" dynamodbav:"createdAt"`
+}
+type PendingAction struct {
 	Pk        string        `json:"-" dynamodbav:"pk"`  //pending
 	Sk        string        `json:"id" dynamodbav:"sk"` //order:<id>
 	Type      string        `json:"type" dynamodbav:"type"`
@@ -94,6 +102,7 @@ type PendingSessionAction struct {
 	TableId   string        `json:"tableId" dynamodbav:"tableId"`
 	CreatedAt int64         `json:"createdAt" dynamodbav:"createdAt"`
 }
+type SessionContextKey string
 
 type TableToken struct {
 	Id string `json:"id"`

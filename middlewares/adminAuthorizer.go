@@ -58,7 +58,7 @@ func AdminAuthorizer(next HandleFunc) HandleFunc {
 			json.NewEncoder(w).Encode(body)
 			return
 		}
-
-		next(w, r)
+		ctx := context.WithValue(r.Context(), types.SessionContextKey("session"), session)
+		next(w, r.WithContext(ctx))
 	}
 }
