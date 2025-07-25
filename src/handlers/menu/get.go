@@ -19,7 +19,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		TableName:              aws.String(os.Getenv("DB_TABLE_NAME")),
 		KeyConditionExpression: aws.String("pk = :items"),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":items": &types.AttributeValueMemberS{Value: "item"},
+			":items": &types.AttributeValueMemberS{Value: "menu"},
 		},
 	})
 	if err != nil {

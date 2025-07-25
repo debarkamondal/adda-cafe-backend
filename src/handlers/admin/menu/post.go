@@ -3,7 +3,6 @@ package menu
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -27,9 +26,6 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&product)
 	product.Image = id.String() + "." + strings.Split(product.Image, ".")[1]
 
-	if err != nil {
-		log.Fatalf("failed to load configuration, %v", err)
-	}
 	product.Pk = "menu"
 	product.Sk = id.String()
 
