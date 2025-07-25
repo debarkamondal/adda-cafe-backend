@@ -1,13 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
 
-	"github.com/debarkamondal/adda-cafe-backend/handlers/admin/ws"
-	"github.com/debarkamondal/adda-cafe-backend/middlewares"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/debarkamondal/adda-cafe-backend/src/handlers/admin/ws"
+	"github.com/debarkamondal/adda-cafe-backend/src/middlewares"
 )
+
+var cfg, err = config.LoadDefaultConfig(context.Background(), config.WithRegion("ap-south-1"))
+var DBClient = dynamodb.NewFromConfig(cfg)
 
 func main() {
 	mux := InitRoutes(http.NewServeMux())

@@ -10,10 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	localType "github.com/debarkamondal/adda-cafe-backend/src/types"
 )
-
-var cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-south-1"))
-var dbClient = dynamodb.NewFromConfig(cfg)
 
 type Body struct {
 	Id     string `json:"id"`
@@ -21,8 +19,12 @@ type Body struct {
 	Reason string `json:"reason"`
 }
 
+var cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-south-1"))
+var dbClient = dynamodb.NewFromConfig(cfg)
+
 func Delete(w http.ResponseWriter, r *http.Request) {
 	var req Body
+	session, _ := r.Context().Value(localType.SessionContextKey("session")).(localType.BackendSession)
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -63,7 +65,10 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 						"pk": &types.AttributeValueMemberS{Value: "session"},
 						"sk": &types.AttributeValueMemberS{Value: req.Id},
 					},
-					UpdateExpression: aws.String("SET acceptedBy = "),
+					UpdateExpression: aws.String("SET blame = :acceptedBy"),
+					ExpressionAttributeValues: map[string]types.AttributeValue{
+						":acceptedBy": &types.AttributeValueMemberS{Value: session.Name},
+					},
 				},
 			},
 		},

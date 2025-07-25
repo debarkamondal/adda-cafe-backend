@@ -15,9 +15,8 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
-	localTypes "github.com/debarkamondal/adda-cafe-backend/types"
+	localTypes "github.com/debarkamondal/adda-cafe-backend/src/types"
 )
-
 
 type credentials struct {
 	Id       string `json:"id"`

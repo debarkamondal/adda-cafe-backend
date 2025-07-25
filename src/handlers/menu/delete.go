@@ -12,7 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 
-	localType "github.com/debarkamondal/adda-cafe-backend/types"
+	localType "github.com/debarkamondal/adda-cafe-backend/src/types"
 )
 
 var test localType.Product

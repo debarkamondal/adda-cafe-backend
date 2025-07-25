@@ -15,7 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 
-	"github.com/debarkamondal/adda-cafe-backend/types"
+	"github.com/debarkamondal/adda-cafe-backend/src/types"
 )
 
 var dbClient = dynamodb.NewFromConfig(cfg)

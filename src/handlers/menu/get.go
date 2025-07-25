@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	localType "github.com/debarkamondal/adda-cafe-backend/types"
+	localType "github.com/debarkamondal/adda-cafe-backend/src/types"
 )
 
 func Get(w http.ResponseWriter, r *http.Request) {

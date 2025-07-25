@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	localTypes "github.com/debarkamondal/adda-cafe-backend/types"
+	localTypes "github.com/debarkamondal/adda-cafe-backend/src/types"
 )
 
 type contextKey string

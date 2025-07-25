@@ -3,15 +3,15 @@ package main
 import (
 	"net/http"
 
-	adminLogin "github.com/debarkamondal/adda-cafe-backend/handlers/admin/login"
-	"github.com/debarkamondal/adda-cafe-backend/handlers/admin/pending"
-	"github.com/debarkamondal/adda-cafe-backend/handlers/admin/ws"
-	"github.com/debarkamondal/adda-cafe-backend/handlers/menu"
-	"github.com/debarkamondal/adda-cafe-backend/handlers/orders"
-	"github.com/debarkamondal/adda-cafe-backend/handlers/reserve"
-	"github.com/debarkamondal/adda-cafe-backend/handlers/signin"
-	"github.com/debarkamondal/adda-cafe-backend/handlers/user"
-	"github.com/debarkamondal/adda-cafe-backend/middlewares"
+	adminLogin "github.com/debarkamondal/adda-cafe-backend/src/handlers/admin/login"
+	"github.com/debarkamondal/adda-cafe-backend/src/handlers/admin/pending"
+	"github.com/debarkamondal/adda-cafe-backend/src/handlers/admin/ws"
+	"github.com/debarkamondal/adda-cafe-backend/src/handlers/menu"
+	"github.com/debarkamondal/adda-cafe-backend/src/handlers/orders"
+	"github.com/debarkamondal/adda-cafe-backend/src/handlers/reserve"
+	"github.com/debarkamondal/adda-cafe-backend/src/handlers/signin"
+	"github.com/debarkamondal/adda-cafe-backend/src/handlers/user"
+	"github.com/debarkamondal/adda-cafe-backend/src/middlewares"
 )
 
 func InitRoutes(mux *http.ServeMux) *http.ServeMux {

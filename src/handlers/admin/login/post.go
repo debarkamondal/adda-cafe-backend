@@ -16,8 +16,9 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	localTypes "github.com/debarkamondal/adda-cafe-backend/types"
-	"github.com/debarkamondal/adda-cafe-backend/utils"
+	localTypes "github.com/debarkamondal/adda-cafe-backend/src/types"
+
+	"github.com/debarkamondal/adda-cafe-backend/src/utils"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -103,8 +104,8 @@ func Post(w http.ResponseWriter, r *http.Request) {
 					},
 					UpdateExpression: aws.String("SET currentSession=:sessionId, updatedAt=:updatedAt"),
 					ExpressionAttributeValues: map[string]types.AttributeValue{
-						":sessionId":    &types.AttributeValueMemberS{Value: sessionId.String()},
-						":updatedAt":    &types.AttributeValueMemberN{Value: strconv.FormatInt(currentTime, 10)},
+						":sessionId": &types.AttributeValueMemberS{Value: sessionId.String()},
+						":updatedAt": &types.AttributeValueMemberN{Value: strconv.FormatInt(currentTime, 10)},
 					},
 				},
 			},
@@ -159,9 +160,9 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 	})
 	http.SetCookie(w, &http.Cookie{
-		Name:     "csrf_token",
-		Domain:   rootDomain,
-		Path:     "/",
+		Name:   "csrf_token",
+		Domain: rootDomain,
+		Path:   "/",
 		// Path:     os.Getenv("URI_PREFIX"),
 		Value:    csrf.String(),
 		MaxAge:   10800,

@@ -14,7 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awsTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/debarkamondal/adda-cafe-backend/types"
+	"github.com/debarkamondal/adda-cafe-backend/src/types"
 	"github.com/gorilla/websocket"
 )
 

@@ -14,14 +14,15 @@ import (
 	// "github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/debarkamondal/adda-cafe-backend/handlers/admin/ws"
-	"github.com/debarkamondal/adda-cafe-backend/types"
-	"github.com/debarkamondal/adda-cafe-backend/utils"
+	"github.com/debarkamondal/adda-cafe-backend/src/handlers/admin/ws"
+	"github.com/debarkamondal/adda-cafe-backend/src/types"
+	"github.com/debarkamondal/adda-cafe-backend/src/utils"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	awsTypes "github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	localTypes "github.com/debarkamondal/adda-cafe-backend/types"
+	localTypes "github.com/debarkamondal/adda-cafe-backend/src/types"
+
 	"github.com/google/uuid"
 )
 
