@@ -89,7 +89,7 @@ func WsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(paRes.Items) > 0 {
-		var pendingActions []types.PendingSessionAction
+		var pendingActions []types.PendingAction
 		err = attributevalue.UnmarshalListOfMaps(paRes.Items, &pendingActions)
 		Broadcast <- pendingActions
 	}

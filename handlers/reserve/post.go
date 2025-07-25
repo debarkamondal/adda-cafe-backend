@@ -110,7 +110,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		CsrfToken: csrf.String(),
 	}
 
-	pendingSession := []localTypes.PendingSessionAction{
+	pendingSession := []localTypes.PendingAction{
 		{
 			Pk:   "pending",
 			Sk:   "session:" + uid.String(),

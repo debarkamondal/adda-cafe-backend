@@ -5,24 +5,21 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	localTypes "github.com/debarkamondal/adda-cafe-backend/types"
 )
 
-var cfg, err = config.LoadDefaultConfig(context.TODO(), config.WithRegion("ap-south-1"))
-var dbClient = dynamodb.NewFromConfig(cfg)
+type contextKey string
 
-type Body struct {
-	Id     string `json:"id"`
-	Type   string `json:"type"`
-	Reason string `json:"reason"`
-}
-
-func Delete(w http.ResponseWriter, r *http.Request) {
+func Put(w http.ResponseWriter, r *http.Request) {
 	var req Body
+	ctx := r.Context()
+	session, _ := ctx.Value(localTypes.SessionContextKey("session")).(localTypes.BackendSession)
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -45,6 +42,23 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 
 	}
 
+	pending := &localTypes.FlagAction{
+		Pk:        "flagged",
+		Sk:        req.Id,
+		Blame:     session.Name,
+		Reason:    req.Reason,
+		Type:      actionType,
+		CreatedAt: time.Now().UnixMilli(),
+	}
+
+	marshalledData, err := attributevalue.MarshalMap(pending)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		body := map[string]any{"message": "Internal Server Error."}
+		json.NewEncoder(w).Encode(body)
+		return
+	}
 	_, err = dbClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
 		TransactItems: []types.TransactWriteItem{
 			{
@@ -57,24 +71,14 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 				},
 			},
 			{
-				Update: &types.Update{
+				Put: &types.Put{
 					TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
-					Key: map[string]types.AttributeValue{
-						"pk": &types.AttributeValueMemberS{Value: "session"},
-						"sk": &types.AttributeValueMemberS{Value: req.Id},
-					},
-					UpdateExpression: aws.String("SET acceptedBy = "),
+					Item:      marshalledData,
 				},
 			},
 		},
 	})
-	_, err = dbClient.DeleteItem(context.TODO(), &dynamodb.DeleteItemInput{
-		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
-		Key: map[string]types.AttributeValue{
-			"pk": &types.AttributeValueMemberS{Value: "pending"},
-			"sk": &types.AttributeValueMemberS{Value: actionType + ":" + req.Id},
-		},
-	})
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		body := map[string]any{"message": "DB error"}
