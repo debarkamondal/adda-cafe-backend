@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	adminLogin "github.com/debarkamondal/adda-cafe-backend/src/handlers/admin/login"
-	"github.com/debarkamondal/adda-cafe-backend/src/handlers/admin/pending"
 	adminMenu "github.com/debarkamondal/adda-cafe-backend/src/handlers/admin/menu"
+	"github.com/debarkamondal/adda-cafe-backend/src/handlers/admin/pending"
 	"github.com/debarkamondal/adda-cafe-backend/src/handlers/admin/ws"
 	"github.com/debarkamondal/adda-cafe-backend/src/handlers/menu"
 	"github.com/debarkamondal/adda-cafe-backend/src/handlers/orders"
@@ -23,12 +23,13 @@ func InitRoutes(mux *http.ServeMux) *http.ServeMux {
 	mux.HandleFunc("POST /reserve", reserve.Post)
 
 	mux.HandleFunc("GET /menu", menu.Get)
+	mux.HandleFunc("GET /menu/{id}", menu.GetById)
 
 	// Backend routes (Authenticated)
 	mux.HandleFunc("POST /user/admin", user.CreateAdmin)
 
 	mux.HandleFunc("POST /admin/menu", middlewares.Handle(adminMenu.Post, []middlewares.Middleware{middlewares.AdminAuthorizer}))
-	mux.HandleFunc("DELETE /admin/menu", middlewares.Handle(adminMenu.Delete, []middlewares.Middleware{middlewares.AdminAuthorizer}))
+	mux.HandleFunc("DELETE /admin/menu/{id}", middlewares.Handle(adminMenu.Delete, []middlewares.Middleware{middlewares.AdminAuthorizer}))
 	mux.HandleFunc("PATCH /admin/menu", middlewares.Handle(adminMenu.Patch, []middlewares.Middleware{middlewares.AdminAuthorizer}))
 
 	mux.HandleFunc("DELETE /admin/pending", middlewares.Handle(pending.Delete, []middlewares.Middleware{middlewares.AdminAuthorizer}))

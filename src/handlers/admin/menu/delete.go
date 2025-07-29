@@ -16,14 +16,13 @@ import (
 	localType "github.com/debarkamondal/adda-cafe-backend/src/types"
 )
 
-var test localType.Product
 
 func Delete(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	res, err := clients.DBClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
-			"pk": &types.AttributeValueMemberS{Value: "item"}, // Partition Key
+			"pk": &types.AttributeValueMemberS{Value: "menu"}, // Partition Key
 			"sk": &types.AttributeValueMemberS{Value: id},     // Sort Key
 		},
 	})
@@ -43,11 +42,11 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	}
 	var item localType.Product
 	attributevalue.UnmarshalMap(res.Item, &item)
-	_, deleteErr := clients.DBClient.DeleteItem(context.TODO(), &dynamodb.DeleteItemInput{
+	_, deleteErr := clients.DBClient.DeleteItem(r.Context(), &dynamodb.DeleteItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
-			"pk": &types.AttributeValueMemberS{Value: "item"}, // Partition Key
-			"sk": &types.AttributeValueMemberS{Value: id},     // Sort Key
+			"pk": &types.AttributeValueMemberS{Value: "menu"},
+			"sk": &types.AttributeValueMemberS{Value: id},
 		},
 	})
 	if deleteErr != nil {
@@ -57,9 +56,9 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(body)
 		return
 	}
-	_, s3Err := clients.S3Client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+	_, s3Err := clients.S3Client.DeleteObject(r.Context(), &s3.DeleteObjectInput{
 		Bucket: aws.String(os.Getenv("S3_BUCKET_NAME")),
-		Key:    aws.String("items/" + item.Image),
+		Key:    aws.String("menu/" + item.Image),
 	})
 	if s3Err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -68,8 +67,5 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	body := map[string]any{"message": "Item deleted."}
-	json.NewEncoder(w).Encode(body)
+	w.WriteHeader(http.StatusNoContent)
 }

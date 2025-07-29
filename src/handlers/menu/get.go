@@ -40,3 +40,28 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(items)
 
 }
+func GetById(w http.ResponseWriter, r *http.Request) {
+	res, err := clients.DBClient.GetItem(r.Context(), &dynamodb.GetItemInput{
+		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
+		Key: map[string]types.AttributeValue{
+			"pk": &types.AttributeValueMemberS{Value: "menu"},
+			"sk": &types.AttributeValueMemberS{Value: r.PathValue("id")},
+		},
+	})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		body := map[string]any{"message": "DB error"}
+		json.NewEncoder(w).Encode(body)
+		return
+	}
+	var item localType.Product
+	err = attributevalue.UnmarshalMap(res.Item, &item)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		body := map[string]any{"message": "DB error"}
+		json.NewEncoder(w).Encode(body)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(item)
+}
