@@ -3,4 +3,5 @@
 tmp/*
 bin/*
 build/*
+bruno/*
 private/*

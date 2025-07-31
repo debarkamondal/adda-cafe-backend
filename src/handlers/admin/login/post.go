@@ -43,7 +43,7 @@ func HashPassword(password string) (string, error) {
 func Post(w http.ResponseWriter, r *http.Request) {
 	var creds adminCreds
 	err := json.NewDecoder(r.Body).Decode(&creds)
-	res, err := clients.DBClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
+	res, err := clients.DBClient.GetItem(r.Context(), &dynamodb.GetItemInput{
 		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: "admin:" + creds.Username},

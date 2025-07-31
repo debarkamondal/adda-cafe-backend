@@ -3,6 +3,7 @@ package orders
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -47,6 +48,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	marshalledOrder, err := attributevalue.MarshalMap(order)
 	ws.Broadcast <- order
 
+	fmt.Println(order)
 	_, err = clients.DBClient.TransactWriteItems(context.TODO(), &dynamodb.TransactWriteItemsInput{
 		TransactItems: []awsTypes.TransactWriteItem{
 			{

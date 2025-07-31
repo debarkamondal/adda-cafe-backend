@@ -9,7 +9,6 @@ const (
 	KitchenUser = "kitchen"
 )
 
-
 type userRole string
 type User struct {
 	Pk             string   `json:"-" dynamodbav:"pk"` // user
@@ -33,15 +32,18 @@ type Product struct {
 type Item struct {
 	Id    string `json:"id" dynamodbav:"id"`
 	Title string `json:"title,omitempty" dynamodbav:"title,omitempty"`
-	Price uint16 `json:"price" dynamodbav:"price, omitempty"`
+	Price uint16 `json:"price,omitempty" dynamodbav:"price, omitempty"`
 	Qty   uint8  `json:"qty" dynamodbav:"qty, omitempty"`
 }
 
 type Order struct {
-	Pk        string `json:"-" dynamodbav:"pk"`
-	Sk        string `json:"id" dynamodbav:"sk"`
-	Items     []Item `json:"items" dynamodbav:"items"`
-	Notes     string `json:"notes,omitempty" dynamodbav:"notes,omitempty"`
+	Pk    string `json:"-" dynamodbav:"pk"`
+	Sk    string `json:"id" dynamodbav:"sk"`
+	Items []struct {
+		Id  string `json:"id" dynamodbav:"id"`
+		Qty uint8  `json:"qty" dynamodbav:"qty, omitempty"`
+	} `json:"items" dynamodbav:"items"`
+	Note      string `json:"note,omitempty" dynamodbav:"note,omitempty"`
 	SessionId string `json:"sessionId" dynamodbav:"sessionId"`
 	CreatedAt int64  `json:"createdAt" dynamodbav:"createdAt"`
 }
@@ -55,6 +57,10 @@ type Table struct {
 	UpdatedAt        int64  `json:"updatedAt" dynamodbav:"updatedAt"`
 }
 
+type QRToken struct {
+	TableId string `json:"id"`
+	jwt.RegisteredClaims
+}
 type sessionStatus string
 
 const (
@@ -104,8 +110,3 @@ type PendingAction struct {
 	CreatedAt int64         `json:"createdAt" dynamodbav:"createdAt"`
 }
 type SessionContextKey string
-
-type TableToken struct {
-	Id string `json:"id"`
-	jwt.RegisteredClaims
-}
