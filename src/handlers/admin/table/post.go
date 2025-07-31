@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/debarkamondal/adda-cafe-backend/src/clients"
 	localTypes "github.com/debarkamondal/adda-cafe-backend/src/types"
 	"github.com/golang-jwt/jwt/v5"
@@ -27,14 +26,6 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	currentTime := time.Now().UnixMilli()
-	tableData := localTypes.Table{
-		Pk:          "table",
-		Sk:          tableId.String(),
-		Title:       tableName,
-		IsAvailable: true,
-		UpdatedAt:   currentTime,
-	}
-	marshalledTable, err := attributevalue.MarshalMap(tableData)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		body := map[string]any{"message": "Internal server error"}
@@ -56,32 +47,45 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(body)
 		return
 	}
-	_, err = clients.DBClient.TransactWriteItems(r.Context(), &dynamodb.TransactWriteItemsInput{
-		TransactItems: []types.TransactWriteItem{
-			{
-				Put: &types.Put{
-					TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
-					Item:      marshalledTable,
-				},
-			},
-			{
-				Update: &types.Update{
-					TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
-					Key: map[string]types.AttributeValue{
-						"pk": &types.AttributeValueMemberS{Value: "qrTokens"},
-						"sk": &types.AttributeValueMemberS{Value: "tables"},
-					},
-					UpdateExpression: aws.String("SET #tableId = :qrToken "),
-					ExpressionAttributeNames: map[string]string{
-						"#tableId": tableId.String(),
-					},
-					ExpressionAttributeValues: map[string]types.AttributeValue{
-						":qrToken": &types.AttributeValueMemberS{Value: signedToken},
-					},
-				},
-			},
-		},
+	tableData := localTypes.Table{
+		Pk:          "table",
+		Sk:          tableId.String(),
+		QRToken:     signedToken,
+		Title:       tableName,
+		IsAvailable: true,
+		UpdatedAt:   currentTime,
+	}
+	marshalledTable, err := attributevalue.MarshalMap(tableData)
+	_, err = clients.DBClient.PutItem(r.Context(), &dynamodb.PutItemInput{
+		TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
+		Item:      marshalledTable,
 	})
+	// _, err = clients.DBClient.TransactWriteItems(r.Context(), &dynamodb.TransactWriteItemsInput{
+	// 	TransactItems: []types.TransactWriteItem{
+	// 		{
+	// 			Put: &types.Put{
+	// 				TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
+	// 				Item:      marshalledTable,
+	// 			},
+	// 		},
+	// 		{
+	// 			Update: &types.Update{
+	// 				TableName: aws.String(os.Getenv("DB_TABLE_NAME")),
+	// 				Key: map[string]types.AttributeValue{
+	// 					"pk": &types.AttributeValueMemberS{Value: "qrTokens"},
+	// 					"sk": &types.AttributeValueMemberS{Value: "tables"},
+	// 				},
+	// 				UpdateExpression: aws.String("SET #tableId = :qrToken "),
+	// 				ExpressionAttributeNames: map[string]string{
+	// 					"#tableId": tableId.String(),
+	// 				},
+	// 				ExpressionAttributeValues: map[string]types.AttributeValue{
+	// 					":qrToken": &types.AttributeValueMemberS{Value: signedToken},
+	// 				},
+	// 			},
+	// 		},
+	// 	},
+	// })
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		body := map[string]any{"message": "Couldn't create table."}
