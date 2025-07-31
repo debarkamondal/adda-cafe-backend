@@ -52,6 +52,7 @@ type Table struct {
 	Pk               string `json:"-" dynamodbav:"pk"`
 	Sk               string `json:"id" dynamodbav:"sk"`
 	Title            string `json:"title" dynamodbav:"title"`
+	QRToken          string `json:"qrToken,omitempty" dynamodbav:"qrToken,omitempty"`
 	IsAvailable      bool   `json:"isAvailable" dynamodbav:"isAvailable"`
 	CurrentSessionId string `json:"currentSession,omitempty" dynamodbav:"currentSession,omitempty"`
 	UpdatedAt        int64  `json:"updatedAt" dynamodbav:"updatedAt"`

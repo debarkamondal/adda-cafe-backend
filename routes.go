@@ -37,6 +37,7 @@ func InitRoutes(mux *http.ServeMux) *http.ServeMux {
 	mux.HandleFunc("PUT /admin/pending", middlewares.Handle(pending.Put, []middlewares.Middleware{middlewares.AdminAuthorizer}))
 
 	mux.HandleFunc("POST /admin/table/{name}", middlewares.Handle(table.Post, []middlewares.Middleware{middlewares.AdminAuthorizer}))
+	mux.HandleFunc("DELETE /admin/table/{token}", middlewares.Handle(table.Delete, []middlewares.Middleware{middlewares.AdminAuthorizer}))
 
 	mux.HandleFunc("/admin/ws", ws.WsHandler) // Authentication and authorization for the websocket is being done by the handler itself
 
