@@ -57,7 +57,6 @@ func UserAuthorizer(next HandleFunc) HandleFunc {
 			json.NewEncoder(w).Encode(body)
 			return
 		}
-
 		next(w, r)
 	}
 }
